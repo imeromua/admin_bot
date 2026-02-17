@@ -11,7 +11,7 @@ Repo: https://github.com/imeromua/admin_bot
 - View/edit target `.env`.
 - View/edit target `requirements.txt` and run pip install using target venv python.
 - DB/Redis checks (best-effort based on env variables).
-- Self-restart after updating admin bot code.
+- Self-update from git and self-restart (env: `ADMIN_BOT_GIT_URL`).
 
 ## Structure
 
@@ -92,6 +92,7 @@ If you're upgrading from the old single-file `admin_bot.py`:
 
 3. **Check `.env` variables**:
    - Ensure `ADMIN_BOT_TOKEN`, `ADMIN_BOT_ADMIN_ID`, `ADMIN_BOT_SELF_SERVICE` are set.
+   - (Optional) For self-update button: set `ADMIN_BOT_GIT_URL` and `ADMIN_BOT_GIT_BRANCH` (default branch: `main`).
    - Ensure `ADMIN_TARGETS` lists all targets (e.g., `generator,inventory`).
    - For each target, verify `ADMIN_TARGET_<X>_SERVICE`, `ADMIN_TARGET_<X>_PATH`, `ADMIN_TARGET_<X>_PYTHON` are correct.
    - `ADMIN_TARGET_<X>_PYTHON` should point to the **target's venv python** (e.g., `/home/anubis/generator_bot/.venv/bin/python`), not admin bot's python.
@@ -127,6 +128,7 @@ If you're upgrading from the old single-file `admin_bot.py`:
    - Send `/start` to your admin bot.
    - Click "🎯 Бот" to switch targets — choice should persist after restart.
    - Test git pull, restart, logs for each target.
+   - Test self-update button and ensure the bot comes back online.
 
 ## Notes on sudo
 

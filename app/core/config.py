@@ -11,6 +11,8 @@ class Config:
     admin_id: int
     self_service_name: str
     targets_str: str
+    self_git_url: str = ""
+    self_git_branch: str = "main"
     max_output_size: int = 4000
 
 
@@ -21,6 +23,9 @@ def load_config() -> Config:
     admin_id_str = os.getenv("ADMIN_BOT_ADMIN_ID")
     self_service_name = os.getenv("ADMIN_BOT_SELF_SERVICE", "admin_bot")
     targets_str = (os.getenv("ADMIN_TARGETS", "") or "").strip()
+
+    self_git_url = (os.getenv("ADMIN_BOT_GIT_URL", "") or "").strip()
+    self_git_branch = (os.getenv("ADMIN_BOT_GIT_BRANCH", "main") or "main").strip() or "main"
 
     if not token:
         raise RuntimeError("ADMIN_BOT_TOKEN is not set in environment")
@@ -45,4 +50,6 @@ def load_config() -> Config:
         admin_id=admin_id,
         self_service_name=self_service_name,
         targets_str=targets_str,
+        self_git_url=self_git_url,
+        self_git_branch=self_git_branch,
     )

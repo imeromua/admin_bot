@@ -9,7 +9,7 @@ from app.core.targets import load_targets
 from app.routers.middlewares import admin_only
 from app.storage.selection import SelectionStore
 
-from app.routers import start, targets, logs, status, pip_ops, git_ops, restart, self_restart, env_ops, backup, sysinfo
+from app.routers import start, targets, logs, status, pip_ops, git_ops, restart, self_restart, self_update, env_ops, backup, sysinfo
 
 
 logger = logging.getLogger("admin_bot")
@@ -46,6 +46,7 @@ async def main_async():
     dp.include_router(git_ops.router)
     dp.include_router(restart.router)
     dp.include_router(self_restart.router)
+    dp.include_router(self_update.router)
     dp.include_router(env_ops.router)
     dp.include_router(backup.router)
     dp.include_router(sysinfo.router)

@@ -12,6 +12,7 @@ def main_keyboard(target: Target) -> ReplyKeyboardMarkup:
             [KeyboardButton(text="🎯 Бот"), KeyboardButton(text="📊 Статус"), KeyboardButton(text="📜 Логи")],
             [KeyboardButton(text="📦 PIP"), KeyboardButton(text="🔧 ENV"), KeyboardButton(text="🚀 GIT PULL")],
             [KeyboardButton(text="🔄 RESTART"), KeyboardButton(text="💾 Бекап БД"), KeyboardButton(text="⚙️ Системна інфо")],
+            [KeyboardButton(text="🤖 Оновити admin_bot")],
         ],
         resize_keyboard=True,
         input_field_placeholder=f"Target: {target.key}",
