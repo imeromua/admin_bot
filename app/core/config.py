@@ -11,6 +11,7 @@ class Config:
     admin_id: int
     self_service_name: str
     targets_str: str
+    admin_repo: str | None = None
     max_output_size: int = 4000
 
 
@@ -21,6 +22,7 @@ def load_config() -> Config:
     admin_id_str = os.getenv("ADMIN_BOT_ADMIN_ID")
     self_service_name = os.getenv("ADMIN_BOT_SELF_SERVICE", "admin_bot")
     targets_str = (os.getenv("ADMIN_TARGETS", "") or "").strip()
+    admin_repo = (os.getenv("ADMIN_BOT_REPO", "") or "").strip() or None
 
     if not token:
         raise RuntimeError("ADMIN_BOT_TOKEN is not set in environment")
@@ -45,4 +47,5 @@ def load_config() -> Config:
         admin_id=admin_id,
         self_service_name=self_service_name,
         targets_str=targets_str,
+        admin_repo=admin_repo,
     )

@@ -92,6 +92,7 @@ If you're upgrading from the old single-file `admin_bot.py`:
 
 3. **Check `.env` variables**:
    - Ensure `ADMIN_BOT_TOKEN`, `ADMIN_BOT_ADMIN_ID`, `ADMIN_BOT_SELF_SERVICE` are set.
+   - Ensure `ADMIN_BOT_REPO` is set (metadata for self-update messages).
    - Ensure `ADMIN_TARGETS` lists all targets (e.g., `generator,inventory`).
    - For each target, verify `ADMIN_TARGET_<X>_SERVICE`, `ADMIN_TARGET_<X>_PATH`, `ADMIN_TARGET_<X>_PYTHON` are correct.
    - `ADMIN_TARGET_<X>_PYTHON` should point to the **target's venv python** (e.g., `/home/anubis/generator_bot/.venv/bin/python`), not admin bot's python.
