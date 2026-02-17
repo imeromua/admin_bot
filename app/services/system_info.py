@@ -1,0 +1,55 @@
+from app.context import Context
+from app.core.exec import run_command, safe_html
+from app.core.targets import Target
+
+
+def collect_system_info(target: Target, *, ctx: Context) -> str:
+    uptime = run_command(["uptime", "-p"], timeout=10, max_output_size=ctx.config.max_output_size)
+
+    df_out = run_command(["df", "-h", "/"], timeout=10, max_output_size=ctx.config.max_output_size)
+    disk = "N/A"
+    lines = [ln for ln in df_out.splitlines() if ln.strip()]
+    if len(lines) >= 2:
+        cols = lines[-1].split()
+        if len(cols) >= 5:
+            disk = cols[4]
+
+    free_out = run_command(["free", "-h"], timeout=10, max_output_size=ctx.config.max_output_size)
+    mem = "N/A"
+    for ln in free_out.splitlines():
+        if ln.startswith("Mem:"):
+            cols = ln.split()
+            if len(cols) >= 3:
+                mem = f"{cols[2]}/{cols[1]}"
+
+    loadavg = run_command(["cat", "/proc/loadavg"], timeout=5, max_output_size=ctx.config.max_output_size)
+    loadavg_short = " ".join(loadavg.split()[:3]) if loadavg and not loadavg.startswith("❌") else "N/A"
+
+    service_uptime = run_command(
+        ["systemctl", "show", target.service, "--property=ActiveEnterTimestamp", "--value"],
+        timeout=10,
+        max_output_size=ctx.config.max_output_size,
+    )
+    service_memory = run_command(
+        ["systemctl", "show", target.service, "--property=MemoryCurrent", "--value"],
+        timeout=10,
+        max_output_size=ctx.config.max_output_size,
+    )
+
+    try:
+        mem_mb = int(service_memory) / 1024 / 1024
+        service_memory_str = f"{mem_mb:.1f} MB"
+    except Exception:
+        service_memory_str = "N/A"
+
+    return (
+        "⚙️ <b>Системна інформація</b>\n"
+        f"🎯 Target: <code>{target.key}</code>\n"
+        f"💾 RAM: <code>{safe_html(mem, max_len=ctx.config.max_output_size)}</code>\n"
+        f"💿 Disk: <code>{safe_html(disk, max_len=ctx.config.max_output_size)}</code>\n"
+        f"⏰ Uptime: <code>{safe_html(uptime, max_len=ctx.config.max_output_size)}</code>\n"
+        f"📈 Loadavg: <code>{safe_html(loadavg_short, max_len=ctx.config.max_output_size)}</code>\n\n"
+        f"📦 <b>Service: {safe_html(target.service, max_len=ctx.config.max_output_size)}</b>\n"
+        f"🔄 Started: <code>{safe_html(service_uptime, max_len=ctx.config.max_output_size)}</code>\n"
+        f"💾 Memory: <code>{safe_html(service_memory_str, max_len=ctx.config.max_output_size)}</code>"
+    )
