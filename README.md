@@ -2,13 +2,21 @@
 
 Telegram admin/control bot to manage multiple co-located bot services (e.g., `generator_bot`, `inventory_bot`) on the same server.
 
-Features:
+Repo: https://github.com/imeromua/admin_bot
+
+## Features
+
 - Multi-target support (choose which bot/service to manage).
 - Status (systemd), logs (journalctl), restart, git pull.
 - View/edit target `.env`.
 - View/edit target `requirements.txt` and run pip install using target venv python.
 - DB/Redis checks (best-effort based on env variables).
 - Self-restart after updating admin bot code.
+
+## Structure
+
+- `admin_bot.py`: entrypoint (kept stable for systemd).
+- `app/`: application package (config, services, routers).
 
 ## Quick start (server)
 
@@ -68,8 +76,4 @@ sudo systemctl enable --now admin_bot
 
 ## Notes on sudo
 
-For `systemctl restart` and `journalctl -u`, configure sudoers to allow only required commands for the `admin_bot` user.
-
-## Repo
-
-- https://github.com/imeromua/admin_bot
+For `systemctl restart` and `journalctl -u`, configure sudoers to allow only required commands for the admin bot user.
