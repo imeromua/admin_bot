@@ -31,6 +31,10 @@ Repo: https://github.com/imeromua/admin_bot
 - Automatic Telegram alerts when:
   - Service goes down (status != active)
   - Critical errors appear in logs
+- **Quick action buttons on every alert:**
+  - ✅ **Виправляємо...** - Mark as "in progress", stop spam for this issue
+  - 🔄 **Restart** - Instantly restart the problematic service
+  - 📜 **Повні логи** - Show last 50 log lines
 - Anti-spam: 15-minute cooldown between identical alerts
 - Configurable via `.env` (see Configuration section)
 
@@ -141,6 +145,14 @@ sudo systemctl enable --now admin_bot
   - `⏰ Timeframes` - Last 1h/3h/24h
   - Download filtered logs as files
 
+### Alert Quick Actions (v6.1+)
+When watchdog sends an alert, you can:
+- **Acknowledge** - Mark the issue as "in progress" to stop receiving duplicate alerts
+- **Restart** - Immediately restart the affected service from the alert message
+- **View logs** - Get the last 50 log lines to investigate the issue
+
+All actions are logged in `audit.log` for accountability.
+
 ## Migration checklist (updating from v6.0 or earlier)
 
 1. **Backup existing `.env`** before pulling new code:
@@ -172,6 +184,7 @@ sudo systemctl enable --now admin_bot
    - Check `/sysinfo` for disk space warnings
    - View `🔥 Critical` and timeframe filters in logs menu
    - (Optional) Set `ADMIN_BOT_ALERTS_ENABLED=true` to enable monitoring
+   - Test quick action buttons on alerts
 
 ## Notes on sudo
 
@@ -193,6 +206,7 @@ anubis ALL=(ALL) NOPASSWD: /bin/journalctl -u admin_bot*
 - ✨ Added audit logging system (`/audit` command)
 - 🔥 Enhanced log filters (Critical, timeframes 1h/3h/24h)
 - 🚨 Automated monitoring with Telegram alerts (optional watchdog)
+- ⚡ Quick action buttons on alerts (Acknowledge, Restart, View logs)
 - 💿 Disk space warnings in sysinfo
 - 📥 Download filtered logs as separate files
 
