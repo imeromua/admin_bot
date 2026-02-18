@@ -4,6 +4,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQu
 from app.context import Context
 from app.core.exec import safe_html
 from app.services.git import git_pull
+from app.services.audit import log_action
 
 
 router = Router()
@@ -16,6 +17,16 @@ async def git_pull_msg(message: types.Message, ctx: Context):
 
     pull_res, log1, updated = git_pull(target, ctx=ctx)
     icon = "✅" if (updated or "Already up to date" in pull_res) else "⚠️"
+
+    # Audit log
+    log_action(
+        user_id=message.from_user.id,
+        action="git_pull",
+        target=target.key,
+        status="updated" if updated else "no_changes",
+        repo_root=ctx.repo_root,
+        details=log1[:100],  # Перші 100 символів коміт-повідомлення
+    )
 
     text = (
         f"{icon} <b>GIT UPDATE</b> ({target.key})\n"
