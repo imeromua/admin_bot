@@ -6,6 +6,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQu
 from app.context import Context
 from app.core.exec import safe_html
 from app.services.systemd import sudo_systemctl_restart, systemctl_is_active
+from app.services.audit import log_action
 
 
 router = Router()
@@ -38,7 +39,19 @@ async def confirm_restart(cb: CallbackQuery, ctx: Context):
     await asyncio.sleep(3)
 
     status = systemctl_is_active(target.service, ctx=ctx)
-    text = "✅ <b>Перезапуск успішний!</b>" if status.strip() == "active" else f"⚠️ Status: <code>{safe_html(status, max_len=ctx.config.max_output_size)}</code>"
+    is_success = status.strip() == "active"
+    
+    # Audit log
+    log_action(
+        user_id=cb.from_user.id,
+        action="restart",
+        target=target.service,
+        status="success" if is_success else "failed",
+        repo_root=ctx.repo_root,
+        details=f"Status after restart: {status.strip()}",
+    )
+
+    text = "✅ <b>Перезапуск успішний!</b>" if is_success else f"⚠️ Status: <code>{safe_html(status, max_len=ctx.config.max_output_size)}</code>"
     await msg.edit_text(text, parse_mode="HTML")
     await cb.answer()
 
