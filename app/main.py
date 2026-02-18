@@ -23,6 +23,7 @@ from app.routers import (
     env_ops,
     backup,
     sysinfo,
+    audit_log,
 )
 
 
@@ -64,6 +65,7 @@ async def main_async():
     dp.include_router(env_ops.router)
     dp.include_router(backup.router)
     dp.include_router(sysinfo.router)
+    dp.include_router(audit_log.router)
 
     # Запуск watchdog якщо вмикано
     watchdog_task = None
