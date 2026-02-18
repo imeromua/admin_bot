@@ -8,11 +8,36 @@ def collect_system_info(target: Target, *, ctx: Context) -> str:
 
     df_out = run_command(["df", "-h", "/"], timeout=10, max_output_size=ctx.config.max_output_size)
     disk = "N/A"
+    disk_warning = ""
     lines = [ln for ln in df_out.splitlines() if ln.strip()]
     if len(lines) >= 2:
         cols = lines[-1].split()
         if len(cols) >= 5:
             disk = cols[4]
+            # Перевірка критичного рівня заповнення
+            try:
+                disk_percent = int(disk.rstrip("%"))
+                if disk_percent >= 90:
+                    disk_warning = " 🔴 CRITICAL"
+                elif disk_percent >= 80:
+                    disk_warning = " 🟡 WARNING"
+            except ValueError:
+                pass
+
+    # Перевірка вільного місця в GB
+    df_gb = run_command(["df", "-BG", "/"], timeout=10, max_output_size=ctx.config.max_output_size)
+    free_gb_str = ""
+    lines_gb = [ln for ln in df_gb.splitlines() if ln.strip()]
+    if len(lines_gb) >= 2:
+        cols = lines_gb[-1].split()
+        if len(cols) >= 4:
+            free_gb = cols[3].rstrip("G")
+            try:
+                if int(free_gb) < 2:
+                    disk_warning = " 🔴 CRITICAL (< 2GB)"
+                free_gb_str = f" ({free_gb}GB вільно)"
+            except ValueError:
+                pass
 
     free_out = run_command(["free", "-h"], timeout=10, max_output_size=ctx.config.max_output_size)
     mem = "N/A"
@@ -46,7 +71,7 @@ def collect_system_info(target: Target, *, ctx: Context) -> str:
         "⚙️ <b>Системна інформація</b>\n"
         f"🎯 Target: <code>{target.key}</code>\n"
         f"💾 RAM: <code>{safe_html(mem, max_len=ctx.config.max_output_size)}</code>\n"
-        f"💿 Disk: <code>{safe_html(disk, max_len=ctx.config.max_output_size)}</code>\n"
+        f"💿 Disk: <code>{safe_html(disk, max_len=ctx.config.max_output_size)}{safe_html(free_gb_str, max_len=ctx.config.max_output_size)}</code>{disk_warning}\n"
         f"⏰ Uptime: <code>{safe_html(uptime, max_len=ctx.config.max_output_size)}</code>\n"
         f"📈 Loadavg: <code>{safe_html(loadavg_short, max_len=ctx.config.max_output_size)}</code>\n\n"
         f"📦 <b>Service: {safe_html(target.service, max_len=ctx.config.max_output_size)}</b>\n"
