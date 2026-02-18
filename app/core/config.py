@@ -14,6 +14,10 @@ class Config:
     self_git_url: str = ""
     self_git_branch: str = "main"
     max_output_size: int = 4000
+    # Нові параметри для watchdog
+    alerts_enabled: bool = False
+    alert_interval: int = 300  # секунд (за замовчуванням 5 хв)
+    alert_on_critical_errors: bool = True
 
 
 def load_config() -> Config:
@@ -26,6 +30,15 @@ def load_config() -> Config:
 
     self_git_url = (os.getenv("ADMIN_BOT_GIT_URL", "") or "").strip()
     self_git_branch = (os.getenv("ADMIN_BOT_GIT_BRANCH", "main") or "main").strip() or "main"
+
+    # Нові параметри
+    alerts_enabled = os.getenv("ADMIN_BOT_ALERTS_ENABLED", "false").lower() in ("true", "1", "yes")
+    alert_interval = int(os.getenv("ADMIN_BOT_ALERT_INTERVAL", "300"))
+    alert_on_critical_errors = os.getenv("ADMIN_BOT_ALERT_ON_CRITICAL", "true").lower() in (
+        "true",
+        "1",
+        "yes",
+    )
 
     if not token:
         raise RuntimeError("ADMIN_BOT_TOKEN is not set in environment")
@@ -52,4 +65,7 @@ def load_config() -> Config:
         targets_str=targets_str,
         self_git_url=self_git_url,
         self_git_branch=self_git_branch,
+        alerts_enabled=alerts_enabled,
+        alert_interval=alert_interval,
+        alert_on_critical_errors=alert_on_critical_errors,
     )
