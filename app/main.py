@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from pathlib import Path
 
@@ -9,7 +10,20 @@ from app.core.targets import load_targets
 from app.routers.middlewares import admin_only
 from app.storage.selection import SelectionStore
 
-from app.routers import start, targets, logs, status, pip_ops, git_ops, restart, self_restart, self_update, env_ops, backup, sysinfo
+from app.routers import (
+    start,
+    targets,
+    logs,
+    status,
+    pip_ops,
+    git_ops,
+    restart,
+    self_restart,
+    self_update,
+    env_ops,
+    backup,
+    sysinfo,
+)
 
 
 logger = logging.getLogger("admin_bot")
@@ -51,11 +65,25 @@ async def main_async():
     dp.include_router(backup.router)
     dp.include_router(sysinfo.router)
 
+    # Запуск watchdog якщо вмикано
+    watchdog_task = None
+    if ctx.config.alerts_enabled:
+        from app.services.watchdog import monitor_targets
+
+        watchdog_task = asyncio.create_task(monitor_targets(bot, ctx))
+        logger.info("Watchdog enabled: monitoring every %ds", ctx.config.alert_interval)
+
     try:
         await bot.delete_webhook(drop_pending_updates=True)
         logger.info("Admin Bot started. Targets: %s", ",".join(ctx.targets.keys()))
         await dp.start_polling(bot, ctx=ctx)
     finally:
+        if watchdog_task:
+            watchdog_task.cancel()
+            try:
+                await watchdog_task
+            except asyncio.CancelledError:
+                pass
         await bot.session.close()
 
 
