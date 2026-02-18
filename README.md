@@ -6,18 +6,45 @@ Repo: https://github.com/imeromua/admin_bot
 
 ## Features
 
-- Multi-target support (choose which bot/service to manage).
-- Status (systemd), logs (journalctl), restart, git pull.
-- View/edit target `.env`.
-- View/edit target `requirements.txt` and run pip install using target venv python.
-- DB/Redis checks (best-effort based on env variables).
-- Self-update from git and self-restart (env: `ADMIN_BOT_GIT_URL`).
+### 👁️ Core Management
+- Multi-target support (choose which bot/service to manage)
+- Status (systemd), logs (journalctl), restart, git pull
+- View/edit target `.env`
+- View/edit target `requirements.txt` and run pip install using target venv python
+- DB/Redis checks (best-effort based on env variables)
+- Self-update from git and self-restart (env: `ADMIN_BOT_GIT_URL`)
+
+### ✨ New in v6.1
+
+#### 📝 Audit Logging
+- All administrative actions are logged to `audit.log`
+- Command `/audit` to view recent entries (20/50 or download full log)
+- Format: `timestamp | user_id | action | target | status | details`
+
+#### 🔥 Enhanced Log Filters
+- **Critical filter**: View only CRITICAL/FATAL/Traceback errors
+- **Timeframe filters**: View logs from last 1h, 3h, or 24h
+- **Download filtered logs**: Save errors/warnings/critical as separate files (20/30/50 lines)
+
+#### 🚨 Automated Monitoring (Watchdog)
+- Continuous monitoring of all target services
+- Automatic Telegram alerts when:
+  - Service goes down (status != active)
+  - Critical errors appear in logs
+- Anti-spam: 15-minute cooldown between identical alerts
+- Configurable via `.env` (see Configuration section)
+
+#### 💿 Disk Space Warnings
+- `🟡 WARNING` indicator when disk usage > 80%
+- `🔴 CRITICAL` indicator when disk usage > 90% or free space < 2GB
+- Displayed in `/sysinfo` command
 
 ## Structure
 
-- `admin_bot.py`: entrypoint (kept stable for systemd).
-- `app/`: application package (config, services, routers).
-- `state.json`: persisted target selection (auto-created, ignored by git).
+- `admin_bot.py`: entrypoint (kept stable for systemd)
+- `app/`: application package (config, services, routers)
+- `state.json`: persisted target selection (auto-created, ignored by git)
+- `audit.log`: administrative action history (auto-created)
 
 ## Quick start (server)
 
@@ -39,6 +66,25 @@ pip install -r requirements.txt
 ```bash
 cp .env.example .env
 nano .env
+```
+
+**Required configuration:**
+```bash
+ADMIN_BOT_TOKEN=your_telegram_bot_token
+ADMIN_BOT_ADMIN_ID=your_telegram_user_id
+ADMIN_TARGETS=generator,inventory
+```
+
+**Optional (v6.1+) - Watchdog configuration:**
+```bash
+# Enable monitoring and alerts
+ADMIN_BOT_ALERTS_ENABLED=true
+
+# Check interval in seconds (default: 300 = 5 minutes)
+ADMIN_BOT_ALERT_INTERVAL=300
+
+# Alert on critical errors (default: true)
+ADMIN_BOT_ALERT_ON_CRITICAL=true
 ```
 
 4) Run (manual)
@@ -75,9 +121,27 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now admin_bot
 ```
 
-## Migration checklist (updating from monolithic version)
+## Available Commands
 
-If you're upgrading from the old single-file `admin_bot.py`:
+### Basic
+- `/start` - Show current target and main menu
+- `/help` - Display help information
+
+### Monitoring (v6.1+)
+- `/audit` - View audit log (administrative action history)
+- `/sysinfo` - System information with disk space warnings
+
+### Logs
+- `📜 Логи` button - Access log menu with filters:
+  - View last 50/100/200 lines
+  - View today's logs
+  - `🔥 Critical (10)` - Last 10 critical errors
+  - `🚨 Errors (50)` - Last 50 errors
+  - `⚠️ Warnings (50)` - Last 50 warnings
+  - `⏰ Timeframes` - Last 1h/3h/24h
+  - Download filtered logs as files
+
+## Migration checklist (updating from v6.0 or earlier)
 
 1. **Backup existing `.env`** before pulling new code:
    ```bash
@@ -85,51 +149,54 @@ If you're upgrading from the old single-file `admin_bot.py`:
    cp .env .env.backup
    ```
 
-2. **Pull new code** (modular structure):
+2. **Pull new code**:
    ```bash
    git pull origin main
    ```
 
-3. **Check `.env` variables**:
-   - Ensure `ADMIN_BOT_TOKEN`, `ADMIN_BOT_ADMIN_ID`, `ADMIN_BOT_SELF_SERVICE` are set.
-   - (Optional) For self-update button: set `ADMIN_BOT_GIT_URL` and `ADMIN_BOT_GIT_BRANCH` (default branch: `main`).
-   - Ensure `ADMIN_TARGETS` lists all targets (e.g., `generator,inventory`).
-   - For each target, verify `ADMIN_TARGET_<X>_SERVICE`, `ADMIN_TARGET_<X>_PATH`, `ADMIN_TARGET_<X>_PYTHON` are correct.
-   - `ADMIN_TARGET_<X>_PYTHON` should point to the **target's venv python** (e.g., `/home/anubis/generator_bot/.venv/bin/python`), not admin bot's python.
+3. **Add new optional env variables** (see `.env.example`):
+   ```bash
+   # Optional: Enable watchdog
+   echo "ADMIN_BOT_ALERTS_ENABLED=false" >> .env
+   echo "ADMIN_BOT_ALERT_INTERVAL=300" >> .env
+   echo "ADMIN_BOT_ALERT_ON_CRITICAL=true" >> .env
+   ```
 
-4. **Verify sudoers configuration**:
-   - Admin bot user needs passwordless sudo for:
-     - `systemctl restart <target_service>`
-     - `systemctl restart admin_bot` (for self-restart)
-     - `journalctl -u <target_service>`
-   - Example `/etc/sudoers.d/admin_bot`:
-     ```
-     anubis ALL=(ALL) NOPASSWD: /bin/systemctl restart generator_bot
-     anubis ALL=(ALL) NOPASSWD: /bin/systemctl restart inventory_bot
-     anubis ALL=(ALL) NOPASSWD: /bin/systemctl restart admin_bot
-     anubis ALL=(ALL) NOPASSWD: /bin/journalctl -u generator_bot*
-     anubis ALL=(ALL) NOPASSWD: /bin/journalctl -u inventory_bot*
-     anubis ALL=(ALL) NOPASSWD: /bin/journalctl -u admin_bot*
-     ```
-
-5. **Check file permissions**:
-   - Ensure `state.json` (created automatically) is writable by the bot user:
-     ```bash
-     ls -la /home/anubis/admin_bot/state.json
-     ```
-   - If missing, it will be created on first target switch.
-
-6. **Restart admin bot**:
+4. **Restart admin bot**:
    ```bash
    sudo systemctl restart admin_bot
    ```
 
-7. **Test in Telegram**:
-   - Send `/start` to your admin bot.
-   - Click "🎯 Бот" to switch targets — choice should persist after restart.
-   - Test git pull, restart, logs for each target.
-   - Test self-update button and ensure the bot comes back online.
+5. **Test new features**:
+   - Send `/audit` to view audit log
+   - Check `/sysinfo` for disk space warnings
+   - View `🔥 Critical` and timeframe filters in logs menu
+   - (Optional) Set `ADMIN_BOT_ALERTS_ENABLED=true` to enable monitoring
 
 ## Notes on sudo
 
-For `systemctl restart` and `journalctl -u`, configure sudoers to allow only required commands for the admin bot user (see migration checklist above).
+For `systemctl restart` and `journalctl -u`, configure sudoers to allow only required commands for the admin bot user.
+
+Example `/etc/sudoers.d/admin_bot`:
+```
+anubis ALL=(ALL) NOPASSWD: /bin/systemctl restart generator_bot
+anubis ALL=(ALL) NOPASSWD: /bin/systemctl restart inventory_bot
+anubis ALL=(ALL) NOPASSWD: /bin/systemctl restart admin_bot
+anubis ALL=(ALL) NOPASSWD: /bin/journalctl -u generator_bot*
+anubis ALL=(ALL) NOPASSWD: /bin/journalctl -u inventory_bot*
+anubis ALL=(ALL) NOPASSWD: /bin/journalctl -u admin_bot*
+```
+
+## Version History
+
+### v6.1 (2026-02-18)
+- ✨ Added audit logging system (`/audit` command)
+- 🔥 Enhanced log filters (Critical, timeframes 1h/3h/24h)
+- 🚨 Automated monitoring with Telegram alerts (optional watchdog)
+- 💿 Disk space warnings in sysinfo
+- 📥 Download filtered logs as separate files
+
+### v6.0
+- Initial modular architecture
+- Multi-target management
+- Basic monitoring and control features
