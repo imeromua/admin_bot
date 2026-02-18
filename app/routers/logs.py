@@ -24,11 +24,20 @@ async def logs_menu(message: types.Message):
             ],
             [InlineKeyboardButton(text="📅 Сьогодні", callback_data="logs:today")],
             [
-                InlineKeyboardButton(text="🚨 Помилки (50)",  callback_data="logs:errors:50"),
+                InlineKeyboardButton(text="🔥 Critical (10)", callback_data="logs:critical:10"),
+                InlineKeyboardButton(text="🚨 Errors (50)",  callback_data="logs:errors:50"),
+            ],
+            [
                 InlineKeyboardButton(text="⚠️ Warnings (50)", callback_data="logs:warnings:50"),
             ],
+            # ── фільтр за часом ──
+            [
+                InlineKeyboardButton(text="⏰ 1 год",  callback_data="logs:timeframe:1h"),
+                InlineKeyboardButton(text="⏰ 3 год",  callback_data="logs:timeframe:3h"),
+                InlineKeyboardButton(text="⏰ 24 год", callback_data="logs:timeframe:24h"),
+            ],
             [InlineKeyboardButton(text="💾 Завантажити файл", callback_data="logs:download")],
-            # ── нові рядки для завантаження відфільтрованих логів ──
+            # ── завантаження відфільтрованих ──
             [
                 InlineKeyboardButton(text="📥 Errors 20",  callback_data="logs:dl_errors:20"),
                 InlineKeyboardButton(text="📥 Errors 30",  callback_data="logs:dl_errors:30"),
@@ -46,6 +55,7 @@ async def logs_menu(message: types.Message):
 
 # ── патерни фільтрації ──────────────────────────────────────────────────
 _PATTERNS = {
+    "critical": re.compile(r"CRITICAL|FATAL|Traceback", re.IGNORECASE),
     "errors":   re.compile(r"ERROR|CRITICAL|Exception|Traceback", re.IGNORECASE),
     "warnings": re.compile(r"warning", re.IGNORECASE),
 }
@@ -64,8 +74,8 @@ async def logs_view(cb: CallbackQuery, ctx: Context):
     parts = cb.data.split(":")
 
     # ── скачування відфільтрованих логів (errors / warnings) ────────────
-    if len(parts) == 3 and parts[1] in {"dl_errors", "dl_warnings"} and parts[2].isdigit():
-        level_key = parts[1].replace("dl_", "")   # "errors" або "warnings"
+    if len(parts) == 3 and parts[1] in {"dl_errors", "dl_warnings", "dl_critical"} and parts[2].isdigit():
+        level_key = parts[1].replace("dl_", "")   # "errors", "warnings" або "critical"
         n = int(parts[2])
 
         await cb.answer(f"⏳ Генерую файл ({level_key}, {n} рядків)…", show_alert=True)
@@ -73,7 +83,7 @@ async def logs_view(cb: CallbackQuery, ctx: Context):
         raw = journalctl_lines(target.service, n=1000, ctx=ctx)
         filtered = _filter_lines(raw, level_key, n)
 
-        icon = "🚨" if level_key == "errors" else "⚠️"
+        icon = "🔥" if level_key == "critical" else ("🚨" if level_key == "errors" else "⚠️")
         if not filtered:
             await cb.message.answer(f"{icon} Немає записів ({level_key}) для {target.key}")
             return
@@ -85,8 +95,23 @@ async def logs_view(cb: CallbackQuery, ctx: Context):
         filename.unlink(missing_ok=True)
         return
 
-    # ── решта існуючої логіки (без змін) ────────────────────────────────
-    if cb.data == "logs:today":
+    # ── фільтр за timeframe ───────────────────────────────────────────────
+    if len(parts) == 3 and parts[1] == "timeframe":
+        timeframe = parts[2]  # "1h", "3h", "24h"
+        since_map = {"1h": "1 hour ago", "3h": "3 hours ago", "24h": "1 day ago"}
+        since = since_map.get(timeframe, "1 hour ago")
+        
+        out = journalctl_lines(target.service, since=since, ctx=ctx)
+        title = f"⏰ Логи за останні {timeframe.replace('h', ' год')} ({target.key})"
+    # ── critical фільтр ─────────────────────────────────────────────────────
+    elif len(parts) == 3 and parts[1] == "critical" and parts[2].isdigit():
+        n = int(parts[2])
+        raw = journalctl_lines(target.service, n=1000, ctx=ctx)
+        filtered_text = _filter_lines(raw, "critical", n)
+        out = filtered_text or "(немає збігів)"
+        title = f"🔥 Critical (останні {n}) ({target.key})"
+    # ── решта існуючої логіки ──────────────────────────────────────────────
+    elif cb.data == "logs:today":
         out = journalctl_lines(target.service, since="today", ctx=ctx)
         title = f"📅 Логи за сьогодні ({target.key})"
     elif cb.data == "logs:download":
