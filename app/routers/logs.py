@@ -18,19 +18,44 @@ async def logs_menu(message: types.Message):
     kb = InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="📋 50", callback_data="logs:50"),
+                InlineKeyboardButton(text="📋 50",  callback_data="logs:50"),
                 InlineKeyboardButton(text="📋 100", callback_data="logs:100"),
                 InlineKeyboardButton(text="📋 200", callback_data="logs:200"),
             ],
             [InlineKeyboardButton(text="📅 Сьогодні", callback_data="logs:today")],
             [
-                InlineKeyboardButton(text="🚨 Помилки (50)", callback_data="logs:errors:50"),
+                InlineKeyboardButton(text="🚨 Помилки (50)",  callback_data="logs:errors:50"),
                 InlineKeyboardButton(text="⚠️ Warnings (50)", callback_data="logs:warnings:50"),
             ],
             [InlineKeyboardButton(text="💾 Завантажити файл", callback_data="logs:download")],
+            # ── нові рядки для завантаження відфільтрованих логів ──
+            [
+                InlineKeyboardButton(text="📥 Errors 20",  callback_data="logs:dl_errors:20"),
+                InlineKeyboardButton(text="📥 Errors 30",  callback_data="logs:dl_errors:30"),
+                InlineKeyboardButton(text="📥 Errors 50",  callback_data="logs:dl_errors:50"),
+            ],
+            [
+                InlineKeyboardButton(text="📥 Warnings 20", callback_data="logs:dl_warnings:20"),
+                InlineKeyboardButton(text="📥 Warnings 30", callback_data="logs:dl_warnings:30"),
+                InlineKeyboardButton(text="📥 Warnings 50", callback_data="logs:dl_warnings:50"),
+            ],
         ]
     )
     await message.answer("📜 <b>Логи (journalctl)</b>", reply_markup=kb, parse_mode="HTML")
+
+
+# ── патерни фільтрації ──────────────────────────────────────────────────
+_PATTERNS = {
+    "errors":   re.compile(r"ERROR|CRITICAL|Exception|Traceback", re.IGNORECASE),
+    "warnings": re.compile(r"warning", re.IGNORECASE),
+}
+
+
+def _filter_lines(raw: str, level: str, n: int) -> str:
+    """Повертає останні n рядків відфільтрованого журналу або порожній рядок."""
+    pattern = _PATTERNS[level]
+    filtered = [ln for ln in raw.splitlines() if pattern.search(ln)]
+    return "\n".join(filtered[-n:])
 
 
 @router.callback_query(F.data.startswith("logs:"))
@@ -38,6 +63,29 @@ async def logs_view(cb: CallbackQuery, ctx: Context):
     target = ctx.get_active_target(cb.message.chat.id)
     parts = cb.data.split(":")
 
+    # ── скачування відфільтрованих логів (errors / warnings) ────────────
+    if len(parts) == 3 and parts[1] in {"dl_errors", "dl_warnings"} and parts[2].isdigit():
+        level_key = parts[1].replace("dl_", "")   # "errors" або "warnings"
+        n = int(parts[2])
+
+        await cb.answer(f"⏳ Генерую файл ({level_key}, {n} рядків)…", show_alert=True)
+
+        raw = journalctl_lines(target.service, n=1000, ctx=ctx)
+        filtered = _filter_lines(raw, level_key, n)
+
+        icon = "🚨" if level_key == "errors" else "⚠️"
+        if not filtered:
+            await cb.message.answer(f"{icon} Немає записів ({level_key}) для {target.key}")
+            return
+
+        filename = Path(f"{level_key}_{target.key}_{n}.txt")
+        filename.write_text(filtered + "\n", encoding="utf-8")
+        caption = f"{icon} {level_key.capitalize()} — останні {n} рядків ({target.key})"
+        await cb.message.answer_document(FSInputFile(str(filename)), caption=caption)
+        filename.unlink(missing_ok=True)
+        return
+
+    # ── решта існуючої логіки (без змін) ────────────────────────────────
     if cb.data == "logs:today":
         out = journalctl_lines(target.service, since="today", ctx=ctx)
         title = f"📅 Логи за сьогодні ({target.key})"
@@ -57,16 +105,13 @@ async def logs_view(cb: CallbackQuery, ctx: Context):
         level = parts[1]
         n = int(parts[2])
         raw = journalctl_lines(target.service, n=500, ctx=ctx)
-        lines = raw.splitlines()
-        if level == "errors":
-            pattern = re.compile(r"ERROR|CRITICAL|Exception|Traceback", re.IGNORECASE)
-            filtered = [ln for ln in lines if pattern.search(ln)]
-            title = f"🚨 Помилки (останні {n}) ({target.key})"
-        else:
-            pattern = re.compile(r"warning", re.IGNORECASE)
-            filtered = [ln for ln in lines if pattern.search(ln)]
-            title = f"⚠️ Warnings (останні {n}) ({target.key})"
-        out = "\n".join(filtered[-n:]) or "(немає збігів)"
+        filtered_text = _filter_lines(raw, level, n)
+        out = filtered_text or "(немає збігів)"
+        title = (
+            f"🚨 Помилки (останні {n}) ({target.key})"
+            if level == "errors"
+            else f"⚠️ Warnings (останні {n}) ({target.key})"
+        )
     else:
         await cb.answer()
         return
