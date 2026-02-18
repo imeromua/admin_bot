@@ -24,6 +24,7 @@ from app.routers import (
     backup,
     sysinfo,
     audit_log,
+    alerts,
 )
 
 
@@ -66,6 +67,7 @@ async def main_async():
     dp.include_router(backup.router)
     dp.include_router(sysinfo.router)
     dp.include_router(audit_log.router)
+    dp.include_router(alerts.router)  # Швидкі дії з alertів
 
     # Запуск watchdog якщо вмикано
     watchdog_task = None
@@ -73,11 +75,11 @@ async def main_async():
         from app.services.watchdog import monitor_targets
 
         watchdog_task = asyncio.create_task(monitor_targets(bot, ctx))
-        logger.info("Watchdog enabled: monitoring every %ds", ctx.config.alert_interval)
+        logger.info("Моніторинг вмикано: перевірка кожні %dс", ctx.config.alert_interval)
 
     try:
         await bot.delete_webhook(drop_pending_updates=True)
-        logger.info("Admin Bot started. Targets: %s", ",".join(ctx.targets.keys()))
+        logger.info("Адмін-бот запущено. Цілі: %s", ",".join(ctx.targets.keys()))
         await dp.start_polling(bot, ctx=ctx)
     finally:
         if watchdog_task:
@@ -95,4 +97,4 @@ def run():
     try:
         asyncio.run(main_async())
     except (KeyboardInterrupt, SystemExit):
-        logger.info("Bot stopped by user")
+        logger.info("Бот зупинено користувачем")
