@@ -18,9 +18,9 @@ def collect_system_info(target: Target, *, ctx: Context) -> str:
             try:
                 disk_percent = int(disk.rstrip("%"))
                 if disk_percent >= 90:
-                    disk_warning = " 🔴 CRITICAL"
+                    disk_warning = " 🔴 КРИТИЧНО"
                 elif disk_percent >= 80:
-                    disk_warning = " 🟡 WARNING"
+                    disk_warning = " 🟡 УВАГА"
             except ValueError:
                 pass
 
@@ -34,8 +34,8 @@ def collect_system_info(target: Target, *, ctx: Context) -> str:
             free_gb = cols[3].rstrip("G")
             try:
                 if int(free_gb) < 2:
-                    disk_warning = " 🔴 CRITICAL (< 2GB)"
-                free_gb_str = f" ({free_gb}GB вільно)"
+                    disk_warning = " 🔴 КРИТИЧНО (< 2ГБ)"
+                free_gb_str = f" ({free_gb}ГБ вільно)"
             except ValueError:
                 pass
 
