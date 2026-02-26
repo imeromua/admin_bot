@@ -51,7 +51,7 @@ async def confirm_restart(cb: CallbackQuery, ctx: Context):
         details=f"Статус після перезапуску: {status.strip()}",
     )
 
-    text = "✅ <b>Перезапуск успішний!</b>" if is_success else f"⚠️ Status: <code>{safe_html(status, max_len=ctx.config.max_output_size)}</code>"
+    text = "✅ <b>Перезапуск успішний!</b>" if is_success else f"⚠️ Статус: <code>{safe_html(status, max_len=ctx.config.max_output_size)}</code>"
     await msg.edit_text(text, parse_mode="HTML")
     await cb.answer()
 

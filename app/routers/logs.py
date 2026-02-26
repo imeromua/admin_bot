@@ -117,7 +117,7 @@ async def logs_view(cb: CallbackQuery, ctx: Context):
         raw = journalctl_lines(target.service, n=1000, ctx=ctx)
         filtered_text = _filter_lines(raw, "critical", n)
         out = filtered_text or "(немає збігів)"
-        title = f"🔥 Critical (останні {n}) ({target.key})"
+        title = f"🔥 Критичні (останні {n}) ({target.key})"
     # ── решта існуючої логіки ──────────────────────────────────────────────
     elif cb.data == "logs:today":
         out = journalctl_lines(target.service, since="today", ctx=ctx)
