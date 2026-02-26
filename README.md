@@ -1,122 +1,122 @@
 # admin_bot
 
-Telegram admin/control bot to manage multiple co-located bot services (e.g., `generator_bot`, `inventory_bot`) on the same server.
+Telegram адмін/контрольний бот для керування кількома ботами-сервісами (наприклад, `generator_bot`, `inventory_bot`) на одному сервері.
 
-Repo: https://github.com/imeromua/admin_bot
+Репозиторій: https://github.com/imeromua/admin_bot
 
-## Features
+## Можливості
 
-### 👁️ Core Management
-- Multi-target support (choose which bot/service to manage)
-- Status (systemd), logs (journalctl), restart, git pull
-- View/edit target `.env`
-- View/edit target `requirements.txt` and run pip install using target venv python
-- DB/Redis checks (best-effort based on env variables)
-- Self-update from git and self-restart (env: `ADMIN_BOT_GIT_URL`)
+### 👁️ Основне керування
+- Підтримка кількох цілей (вибір бота/сервісу для керування)
+- Статус (systemd), логи (journalctl), перезапуск, git pull
+- Перегляд/редагування `.env` цілі
+- Перегляд/редагування `requirements.txt` цілі та встановлення pip через venv python цілі
+- Перевірка БД/Redis (на основі env змінних)
+- Самооновлення з git та перезапуск (env: `ADMIN_BOT_GIT_URL`)
 
-### ✨ New in v6.2
+### ✨ Нове в v6.2
 
-#### 🔧 Bug Fixes & Stability
-- Fixed temp file creation: now uses system temp directory instead of CWD
-- Fixed text chunking edge case that could produce empty first message
-- Fixed potential callback_data overflow in watchdog alerts (Telegram 64-byte limit)
-- Fixed duplicate import and removed unused code
+#### 🔧 Виправлення та стабільність
+- Виправлено створення тимчасових файлів: тепер використовується системна тимчасова директорія замість CWD
+- Виправлено граничний випадок розбиття тексту, що міг створювати порожнє перше повідомлення
+- Виправлено переповнення callback_data у сповіщеннях watchdog (обмеження Telegram 64 байти)
+- Виправлено дублювання імпорту та видалено невикористаний код
 
-#### 📥 Improved Log Downloads
-- Added **Critical log download** buttons (10/20 lines) to log menu
-- All filtered log downloads now use safe temp files
+#### 📥 Покращене завантаження логів
+- Додано кнопки **завантаження критичних логів** (10/20 рядків) до меню логів
+- Усі відфільтровані завантаження логів використовують безпечні тимчасові файли
 
-#### 🧹 Code Cleanup
-- Extracted reusable `split_text_chunks()` utility (DRY across logs, alerts, audit)
-- Replaced f-string logger calls with `%s` formatting for better performance
-- Removed unused `build_root_router` function
+#### 🧹 Чистка коду
+- Виділено повторно використовувану утиліту `split_text_chunks()` (DRY для логів, сповіщень, аудиту)
+- Замінено f-string виклики логера на форматування `%s` для кращої продуктивності
+- Видалено невикористану функцію `build_root_router`
 
-### ✨ New in v6.1
+### ✨ Нове в v6.1
 
-#### 📝 Audit Logging
-- All administrative actions are logged to `audit.log`
-- Command `/audit` to view recent entries (20/50 or download full log)
-- Format: `timestamp | user_id | action | target | status | details`
+#### 📝 Журнал аудиту
+- Усі адміністративні дії записуються в `audit.log`
+- Команда `/audit` для перегляду останніх записів (20/50 або завантажити повний журнал)
+- Формат: `timestamp | user_id | action | target | status | details`
 
-#### 🔥 Enhanced Log Filters
-- **Critical filter**: View only CRITICAL/FATAL/Traceback errors
-- **Timeframe filters**: View logs from last 1h, 3h, or 24h
-- **Download filtered logs**: Save errors/warnings/critical as separate files (20/30/50 lines)
+#### 🔥 Розширені фільтри логів
+- **Фільтр критичних**: перегляд тільки CRITICAL/FATAL/Traceback помилок
+- **Фільтри за часом**: перегляд логів за останні 1год, 3год або 24год
+- **Завантаження відфільтрованих логів**: збереження помилок/попереджень/критичних як окремих файлів (20/30/50 рядків)
 
-#### 🚨 Automated Monitoring (Watchdog)
-- Continuous monitoring of all target services
-- Automatic Telegram alerts when:
-  - Service goes down (status != active)
-  - Critical errors appear in logs
-- **Quick action buttons on every alert:**
-  - ✅ **Виправляємо...** - Mark as "in progress", stop spam for this issue
-  - 🔄 **Restart** - Instantly restart the problematic service
-  - 📜 **Повні логи** - Show last 50 log lines
-- Anti-spam: 15-minute cooldown between identical alerts
-- Configurable via `.env` (see Configuration section)
+#### 🚨 Автоматичний моніторинг (Watchdog)
+- Постійний моніторинг усіх цільових сервісів
+- Автоматичні сповіщення в Telegram коли:
+  - Сервіс зупиняється (статус != active)
+  - З'являються критичні помилки в логах
+- **Кнопки швидких дій на кожному сповіщенні:**
+  - ✅ **Виправляємо...** — Позначити як "в роботі", зупинити спам для цієї проблеми
+  - 🔄 **Перезапуск** — Миттєво перезапустити проблемний сервіс
+  - 📜 **Повні логи** — Показати останні 50 рядків логів
+- Захист від спаму: 15-хвилинний інтервал між однаковими сповіщеннями
+- Налаштовується через `.env` (див. розділ Конфігурація)
 
-#### 💿 Disk Space Warnings
-- `🟡 WARNING` indicator when disk usage > 80%
-- `🔴 CRITICAL` indicator when disk usage > 90% or free space < 2GB
-- Displayed in `/sysinfo` command
+#### 💿 Попередження про дисковий простір
+- `🟡 WARNING` індикатор коли використання диска > 80%
+- `🔴 CRITICAL` індикатор коли використання диска > 90% або вільного місця < 2ГБ
+- Відображається в команді `/sysinfo`
 
-## Structure
+## Структура
 
-- `admin_bot.py`: entrypoint (kept stable for systemd)
-- `app/`: application package (config, services, routers)
-- `state.json`: persisted target selection (auto-created, ignored by git)
-- `audit.log`: administrative action history (auto-created)
+- `admin_bot.py`: точка входу (стабільна для systemd)
+- `app/`: пакет застосунку (конфігурація, сервіси, маршрутизатори)
+- `state.json`: збережений вибір цілі (створюється автоматично, ігнорується git)
+- `audit.log`: історія адміністративних дій (створюється автоматично)
 
-## Quick start (server)
+## Швидкий старт (сервер)
 
-1) Clone
+1) Клонування
 ```bash
 cd /home/anubis
 git clone https://github.com/imeromua/admin_bot.git
 cd admin_bot
 ```
 
-2) Create venv and install deps
+2) Створення venv та встановлення залежностей
 ```bash
 python3 -m venv .venv
 . .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-3) Configure
+3) Конфігурація
 ```bash
 cp .env.example .env
 nano .env
 ```
 
-**Required configuration:**
+**Обов'язкова конфігурація:**
 ```bash
 ADMIN_BOT_TOKEN=your_telegram_bot_token
 ADMIN_BOT_ADMIN_ID=your_telegram_user_id
 ADMIN_TARGETS=generator,inventory
 ```
 
-**Optional (v6.1+) - Watchdog configuration:**
+**Опціонально (v6.1+) — конфігурація Watchdog:**
 ```bash
-# Enable monitoring and alerts
+# Увімкнути моніторинг та сповіщення
 ADMIN_BOT_ALERTS_ENABLED=true
 
-# Check interval in seconds (default: 300 = 5 minutes)
+# Інтервал перевірки в секундах (за замовчуванням: 300 = 5 хвилин)
 ADMIN_BOT_ALERT_INTERVAL=300
 
-# Alert on critical errors (default: true)
+# Сповіщення про критичні помилки (за замовчуванням: true)
 ADMIN_BOT_ALERT_ON_CRITICAL=true
 ```
 
-4) Run (manual)
+4) Запуск (ручний)
 ```bash
 . .venv/bin/activate
 python admin_bot.py
 ```
 
-## systemd (example)
+## systemd (приклад)
 
-Create `/etc/systemd/system/admin_bot.service`:
+Створіть `/etc/systemd/system/admin_bot.service`:
 ```ini
 [Unit]
 Description=admin_bot
@@ -136,78 +136,78 @@ RestartSec=3
 WantedBy=multi-user.target
 ```
 
-Then:
+Потім:
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl enable --now admin_bot
 ```
 
-## Available Commands
+## Доступні команди
 
-### Basic
-- `/start` - Show current target and main menu
-- `/help` - Display help information
+### Базові
+- `/start` — Показати поточну ціль та головне меню
+- `/help` — Показати довідку
 
-### Monitoring (v6.1+)
-- `/audit` - View audit log (administrative action history)
-- `/sysinfo` - System information with disk space warnings
+### Моніторинг (v6.1+)
+- `/audit` — Перегляд журналу аудиту (історія адміністративних дій)
+- `/sysinfo` — Системна інформація з попередженнями про дисковий простір
 
-### Logs
-- `📜 Логи` button - Access log menu with filters:
-  - View last 50/100/200 lines
-  - View today's logs
-  - `🔥 Critical (10)` - Last 10 critical errors
-  - `🚨 Errors (50)` - Last 50 errors
-  - `⚠️ Warnings (50)` - Last 50 warnings
-  - `⏰ Timeframes` - Last 1h/3h/24h
-  - Download filtered logs as files
+### Логи
+- Кнопка `📜 Логи` — Доступ до меню логів з фільтрами:
+  - Перегляд останніх 50/100/200 рядків
+  - Перегляд сьогоднішніх логів
+  - `🔥 Критичні (10)` — Останні 10 критичних помилок
+  - `🚨 Помилки (50)` — Останні 50 помилок
+  - `⚠️ Попередження (50)` — Останні 50 попереджень
+  - `⏰ Часові рамки` — За останні 1год/3год/24год
+  - Завантаження відфільтрованих логів як файлів
 
-### Alert Quick Actions (v6.1+)
-When watchdog sends an alert, you can:
-- **Acknowledge** - Mark the issue as "in progress" to stop receiving duplicate alerts
-- **Restart** - Immediately restart the affected service from the alert message
-- **View logs** - Get the last 50 log lines to investigate the issue
+### Швидкі дії зі сповіщень (v6.1+)
+Коли watchdog надсилає сповіщення, ви можете:
+- **Виправляємо** — Позначити проблему як "в роботі", щоб припинити отримання дублікатів
+- **Перезапуск** — Негайно перезапустити уражений сервіс з повідомлення сповіщення
+- **Повні логи** — Отримати останні 50 рядків логів для дослідження проблеми
 
-All actions are logged in `audit.log` for accountability.
+Усі дії записуються в `audit.log` для звітності.
 
-## Migration checklist (updating from v6.0 or earlier)
+## Чекліст міграції (оновлення з v6.0 або раніше)
 
-1. **Backup existing `.env`** before pulling new code:
+1. **Зробіть резервну копію `.env`** перед завантаженням нового коду:
    ```bash
    cd /home/anubis/admin_bot
    cp .env .env.backup
    ```
 
-2. **Pull new code**:
+2. **Завантажте новий код**:
    ```bash
    git pull origin main
    ```
 
-3. **Add new optional env variables** (see `.env.example`):
+3. **Додайте нові опціональні env змінні** (див. `.env.example`):
    ```bash
-   # Optional: Enable watchdog
+   # Опціонально: увімкнути watchdog
    echo "ADMIN_BOT_ALERTS_ENABLED=false" >> .env
    echo "ADMIN_BOT_ALERT_INTERVAL=300" >> .env
    echo "ADMIN_BOT_ALERT_ON_CRITICAL=true" >> .env
    ```
 
-4. **Restart admin bot**:
+4. **Перезапустіть адмін бота**:
    ```bash
    sudo systemctl restart admin_bot
    ```
 
-5. **Test new features**:
-   - Send `/audit` to view audit log
-   - Check `/sysinfo` for disk space warnings
-   - View `🔥 Critical` and timeframe filters in logs menu
-   - (Optional) Set `ADMIN_BOT_ALERTS_ENABLED=true` to enable monitoring
-   - Test quick action buttons on alerts
+5. **Протестуйте нові функції**:
+   - Надішліть `/audit` для перегляду журналу аудиту
+   - Перевірте `/sysinfo` на попередження про дисковий простір
+   - Перегляньте `🔥 Критичні` та фільтри за часом у меню логів
+   - (Опціонально) Встановіть `ADMIN_BOT_ALERTS_ENABLED=true` для увімкнення моніторингу
+   - Протестуйте кнопки швидких дій на сповіщеннях
 
-## Notes on sudo
+## Примітки щодо sudo
 
-For `systemctl restart` and `journalctl -u`, configure sudoers to allow only required commands for the admin bot user.
+Для `systemctl restart` та `journalctl -u` налаштуйте sudoers, щоб дозволити тільки необхідні команди для користувача адмін бота.
 
-Example `/etc/sudoers.d/admin_bot`:
+Приклад `/etc/sudoers.d/admin_bot`:
 ```
 anubis ALL=(ALL) NOPASSWD: /bin/systemctl restart generator_bot
 anubis ALL=(ALL) NOPASSWD: /bin/systemctl restart inventory_bot
@@ -217,26 +217,26 @@ anubis ALL=(ALL) NOPASSWD: /bin/journalctl -u inventory_bot*
 anubis ALL=(ALL) NOPASSWD: /bin/journalctl -u admin_bot*
 ```
 
-## Version History
+## Історія версій
 
 ### v6.2 (2026-02-26)
-- 🔧 Fixed temp file creation (uses system temp dir, not CWD)
-- 🔧 Fixed text chunking edge case (empty first chunk)
-- 🔧 Fixed callback_data overflow in watchdog critical alerts
-- 📥 Added Critical log download buttons to log menu
-- 🧹 Extracted reusable `split_text_chunks()` utility
-- 🧹 Replaced f-string logger calls with `%s` formatting
-- 🧹 Removed unused code (duplicate imports, dead functions)
+- 🔧 Виправлено створення тимчасових файлів (системна тимчасова директорія замість CWD)
+- 🔧 Виправлено граничний випадок розбиття тексту (порожній перший чанк)
+- 🔧 Виправлено переповнення callback_data у критичних сповіщеннях watchdog
+- 📥 Додано кнопки завантаження критичних логів до меню логів
+- 🧹 Виділено повторно використовувану утиліту `split_text_chunks()`
+- 🧹 Замінено f-string виклики логера на форматування `%s`
+- 🧹 Видалено невикористаний код (дублювання імпортів, мертві функції)
 
 ### v6.1 (2026-02-18)
-- ✨ Added audit logging system (`/audit` command)
-- 🔥 Enhanced log filters (Critical, timeframes 1h/3h/24h)
-- 🚨 Automated monitoring with Telegram alerts (optional watchdog)
-- ⚡ Quick action buttons on alerts (Acknowledge, Restart, View logs)
-- 💿 Disk space warnings in sysinfo
-- 📥 Download filtered logs as separate files
+- ✨ Додано систему журналу аудиту (команда `/audit`)
+- 🔥 Розширені фільтри логів (Критичні, часові рамки 1год/3год/24год)
+- 🚨 Автоматичний моніторинг зі сповіщеннями в Telegram (опціональний watchdog)
+- ⚡ Кнопки швидких дій на сповіщеннях (Виправляємо, Перезапуск, Повні логи)
+- 💿 Попередження про дисковий простір у системній інформації
+- 📥 Завантаження відфільтрованих логів як окремих файлів
 
 ### v6.0
-- Initial modular architecture
-- Multi-target management
-- Basic monitoring and control features
+- Початкова модульна архітектура
+- Керування кількома цілями
+- Базовий моніторинг та функції контролю

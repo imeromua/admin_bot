@@ -26,8 +26,8 @@ async def pip_menu(message: types.Message):
             ],
             [InlineKeyboardButton(text="🔄 ВСТАНОВИТИ", callback_data="pip_install")],
             [
-                InlineKeyboardButton(text="📦 freeze", callback_data="pip_freeze"),
-                InlineKeyboardButton(text="🔍 outdated", callback_data="pip_outdated"),
+                InlineKeyboardButton(text="📦 Встановлені", callback_data="pip_freeze"),
+                InlineKeyboardButton(text="🔍 Застарілі", callback_data="pip_outdated"),
             ],
         ]
     )
@@ -74,7 +74,7 @@ async def pip_edit_save(message: types.Message, state: FSMContext, ctx: Context)
 @router.callback_query(F.data == "pip_install")
 async def pip_install_cb(cb: CallbackQuery, ctx: Context):
     target = ctx.get_active_target(cb.message.chat.id)
-    msg = await cb.message.answer("⏳ <i>pip install...</i>", parse_mode="HTML")
+    msg = await cb.message.answer("⏳ <i>Встановлення pip...</i>", parse_mode="HTML")
     out = pip_install(target, ctx=ctx)
     await msg.edit_text(
         f"📦 <b>pip install</b> ({target.key})\n<blockquote expandable>{safe_html(out, max_len=ctx.config.max_output_size)}</blockquote>",
@@ -107,7 +107,7 @@ async def pip_outdated_cb(cb: CallbackQuery, ctx: Context):
     text = (
         f"✅ Всі пакети актуальні ({target.key})"
         if "Package" not in out
-        else f"🔍 <b>Outdated</b> ({target.key})\n<blockquote expandable>{safe_html(out, max_len=ctx.config.max_output_size)}</blockquote>"
+        else f"🔍 <b>Застарілі пакети</b> ({target.key})\n<blockquote expandable>{safe_html(out, max_len=ctx.config.max_output_size)}</blockquote>"
     )
     await msg.edit_text(text, parse_mode="HTML")
     await cb.answer()

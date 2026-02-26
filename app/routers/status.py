@@ -33,8 +33,8 @@ async def status_view(cb: CallbackQuery, ctx: Context):
         is_active = "active (running)" in raw
         icon = "🟢" if is_active else "🔴"
         await cb.message.answer(
-            f"{icon} <b>Service</b> (<code>{target.service}</code>)\n"
-            f"Target: <code>{target.key}</code>\n"
+            f"{icon} <b>Сервіс</b> (<code>{target.service}</code>)\n"
+            f"Ціль: <code>{target.key}</code>\n"
             f"<blockquote expandable>{safe_html(raw[:3000], max_len=ctx.config.max_output_size)}</blockquote>",
             parse_mode="HTML",
         )

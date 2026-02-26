@@ -37,7 +37,7 @@ def get_db_status(target: Target, *, ctx: Context) -> str:
     icon = "🟢" if healthy else "🔴"
     return (
         f"{icon} <b>PostgreSQL</b>\n"
-        f"Target: <code>{target.key}</code>\n"
+        f"Ціль: <code>{target.key}</code>\n"
         f"DSN: <code>{safe_html(f'{host}:{port}/{dbname}', max_len=ctx.config.max_output_size)}</code>\n\n"
         f"<blockquote expandable>{safe_html(out, max_len=ctx.config.max_output_size)}</blockquote>"
     )

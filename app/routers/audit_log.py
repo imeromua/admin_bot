@@ -1,4 +1,4 @@
-"""Router for viewing audit logs."""
+"""Маршрутизатор для перегляду журналу аудиту."""
 from aiogram import Router, F, types
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, FSInputFile
@@ -14,7 +14,7 @@ router = Router()
 
 @router.message(Command("audit"))
 async def cmd_audit(message: types.Message, ctx: Context):
-    """Show recent audit log entries."""
+    """Показати останні записи журналу аудиту."""
     kb = InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -27,7 +27,7 @@ async def cmd_audit(message: types.Message, ctx: Context):
         ]
     )
     await message.answer(
-        "📝 <b>Audit Log</b>\n\nВсі адміністративні дії записуються в audit.log",
+        "📝 <b>Журнал аудиту</b>\n\nВсі адміністративні дії записуються в audit.log",
         reply_markup=kb,
         parse_mode="HTML",
     )
@@ -41,10 +41,10 @@ async def audit_view(cb: CallbackQuery, ctx: Context):
         await cb.answer("⏳ Генерую файл...", show_alert=True)
         log_file = ctx.repo_root / "audit.log"
         if not log_file.exists():
-            await cb.message.answer("⚠️ Audit log порожній або не існує")
+            await cb.message.answer("⚠️ Журнал аудиту порожній або не існує")
             return
         await cb.message.answer_document(
-            FSInputFile(str(log_file)), caption="📝 Audit log (повна історія)"
+            FSInputFile(str(log_file)), caption="📝 Журнал аудиту (повна історія)"
         )
         return
 
@@ -52,8 +52,8 @@ async def audit_view(cb: CallbackQuery, ctx: Context):
         limit = int(parts[1])
         logs = get_recent_logs(ctx.repo_root, limit=limit)
 
-        if not logs or logs == "Audit log is empty.":
-            await cb.message.answer("📝 <b>Audit Log</b>\n\nЖодних записів немає.", parse_mode="HTML")
+        if not logs or logs == "Журнал аудиту порожній.":
+            await cb.message.answer("📝 <b>Журнал аудиту</b>\n\nЖодних записів немає.", parse_mode="HTML")
             await cb.answer()
             return
 
@@ -61,7 +61,7 @@ async def audit_view(cb: CallbackQuery, ctx: Context):
         chunks = split_text_chunks(logs)
 
         await cb.message.answer(
-            f"📝 <b>Audit Log (останні {limit})</b>\n\n"
+            f"📝 <b>Журнал аудиту (останні {limit})</b>\n\n"
             f"<blockquote expandable>{safe_html(chunks[0], max_len=ctx.config.max_output_size)}</blockquote>",
             parse_mode="HTML",
         )

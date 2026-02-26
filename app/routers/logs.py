@@ -24,11 +24,11 @@ async def logs_menu(message: types.Message):
             ],
             [InlineKeyboardButton(text="📅 Сьогодні", callback_data="logs:today")],
             [
-                InlineKeyboardButton(text="🔥 Critical (10)", callback_data="logs:critical:10"),
-                InlineKeyboardButton(text="🚨 Errors (50)",  callback_data="logs:errors:50"),
+                InlineKeyboardButton(text="🔥 Критичні (10)", callback_data="logs:critical:10"),
+                InlineKeyboardButton(text="🚨 Помилки (50)",  callback_data="logs:errors:50"),
             ],
             [
-                InlineKeyboardButton(text="⚠️ Warnings (50)", callback_data="logs:warnings:50"),
+                InlineKeyboardButton(text="⚠️ Попередження (50)", callback_data="logs:warnings:50"),
             ],
             # ── фільтр за часом ──
             [
@@ -39,18 +39,18 @@ async def logs_menu(message: types.Message):
             [InlineKeyboardButton(text="💾 Завантажити файл", callback_data="logs:download")],
             # ── завантаження відфільтрованих ──
             [
-                InlineKeyboardButton(text="📥 Critical 10", callback_data="logs:dl_critical:10"),
-                InlineKeyboardButton(text="📥 Critical 20", callback_data="logs:dl_critical:20"),
+                InlineKeyboardButton(text="📥 Критичні 10", callback_data="logs:dl_critical:10"),
+                InlineKeyboardButton(text="📥 Критичні 20", callback_data="logs:dl_critical:20"),
             ],
             [
-                InlineKeyboardButton(text="📥 Errors 20",  callback_data="logs:dl_errors:20"),
-                InlineKeyboardButton(text="📥 Errors 30",  callback_data="logs:dl_errors:30"),
-                InlineKeyboardButton(text="📥 Errors 50",  callback_data="logs:dl_errors:50"),
+                InlineKeyboardButton(text="📥 Помилки 20",  callback_data="logs:dl_errors:20"),
+                InlineKeyboardButton(text="📥 Помилки 30",  callback_data="logs:dl_errors:30"),
+                InlineKeyboardButton(text="📥 Помилки 50",  callback_data="logs:dl_errors:50"),
             ],
             [
-                InlineKeyboardButton(text="📥 Warnings 20", callback_data="logs:dl_warnings:20"),
-                InlineKeyboardButton(text="📥 Warnings 30", callback_data="logs:dl_warnings:30"),
-                InlineKeyboardButton(text="📥 Warnings 50", callback_data="logs:dl_warnings:50"),
+                InlineKeyboardButton(text="📥 Попередження 20", callback_data="logs:dl_warnings:20"),
+                InlineKeyboardButton(text="📥 Попередження 30", callback_data="logs:dl_warnings:30"),
+                InlineKeyboardButton(text="📥 Попередження 50", callback_data="logs:dl_warnings:50"),
             ],
         ]
     )
@@ -148,7 +148,7 @@ async def logs_view(cb: CallbackQuery, ctx: Context):
         title = (
             f"🚨 Помилки (останні {n}) ({target.key})"
             if level == "errors"
-            else f"⚠️ Warnings (останні {n}) ({target.key})"
+            else f"⚠️ Попередження (останні {n}) ({target.key})"
         )
     else:
         await cb.answer()

@@ -15,5 +15,5 @@ def main_keyboard(target: Target) -> ReplyKeyboardMarkup:
             [KeyboardButton(text="🤖 Оновити admin_bot")],
         ],
         resize_keyboard=True,
-        input_field_placeholder=f"Target: {target.key}",
+        input_field_placeholder=f"Ціль: {target.key}",
     )

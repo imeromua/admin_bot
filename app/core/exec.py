@@ -17,7 +17,7 @@ def safe_html(text: str, *, max_len: int) -> str:
 
 
 def split_text_chunks(text: str, *, max_chunk: int = 3800) -> List[str]:
-    """Split text into chunks that fit within Telegram message limits."""
+    """Розбиття тексту на частини, що вміщуються в обмеження повідомлень Telegram."""
     chunks: List[str] = []
     cur = ""
     for line in text.split("\n"):
@@ -39,7 +39,7 @@ def run_command(
     env: Optional[Dict[str, str]] = None,
     max_output_size: int = 4000,
 ) -> str:
-    """Run a command safely (no shell), capture stdout+stderr."""
+    """Безпечний запуск команди (без shell), захоплення stdout+stderr."""
     try:
         res = subprocess.run(
             args,
@@ -54,9 +54,9 @@ def run_command(
         if len(out) > max_output_size:
             out = out[:max_output_size] + "\n\n... (обрізано, занадто довгий вивід)"
         if res.returncode != 0:
-            return f"❌ Error (exit code {res.returncode}):\n{out}"
+            return f"❌ Помилка (код виходу {res.returncode}):\n{out}"
         return out
     except subprocess.TimeoutExpired:
-        return f"⏱ Timeout ({timeout}s)"
+        return f"⏱ Таймаут ({timeout}с)"
     except Exception as e:
-        return f"❌ Exception: {e}"
+        return f"❌ Виняток: {e}"

@@ -1,4 +1,4 @@
-"""Watchdog service for monitoring targets and sending alerts."""
+"""Сервіс моніторингу (watchdog) для спостереження за цілями та надсилання сповіщень."""
 import asyncio
 import logging
 import re
@@ -52,11 +52,11 @@ def unacknowledge_alert(alert_key: str) -> None:
 
 
 async def monitor_targets(bot: Bot, ctx: Context) -> None:
-    """Постійний моніторинг всіх цілей і відправка alertів.
+    """Постійний моніторинг всіх цілей і відправка сповіщень.
 
     Args:
-        bot: Telegram bot instance
-        ctx: Application context
+        bot: Екземпляр Telegram бота
+        ctx: Контекст застосунку
     """
     logger.info("Моніторинг запущено: %d цілей", len(ctx.targets))
 
@@ -78,7 +78,7 @@ async def monitor_targets(bot: Bot, ctx: Context) -> None:
                                         callback_data=f"ack_alert:{alert_key}",
                                     ),
                                     InlineKeyboardButton(
-                                        text="🔄 Restart",
+                                        text="🔄 Перезапуск",
                                         callback_data=f"quick_restart:{target.key}",
                                     ),
                                 ],
@@ -86,11 +86,11 @@ async def monitor_targets(bot: Bot, ctx: Context) -> None:
                         )
                         await bot.send_message(
                             ctx.config.admin_id,
-                            f"🚨 <b>ALERT: Service Down</b>\n\n"
-                            f"🎯 Target: <code>{target.key}</code>\n"
-                            f"📦 Service: <code>{target.service}</code>\n"
-                            f"⚠️ Status: <code>{status}</code>\n"
-                            f"⏰ Time: <code>{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</code>",
+                            f"🚨 <b>СПОВІЩЕННЯ: Сервіс не працює</b>\n\n"
+                            f"🎯 Ціль: <code>{target.key}</code>\n"
+                            f"📦 Сервіс: <code>{target.service}</code>\n"
+                            f"⚠️ Статус: <code>{status}</code>\n"
+                            f"⏰ Час: <code>{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</code>",
                             parse_mode="HTML",
                             reply_markup=kb,
                         )
@@ -122,7 +122,7 @@ async def monitor_targets(bot: Bot, ctx: Context) -> None:
                                             callback_data=ack_data,
                                         ),
                                         InlineKeyboardButton(
-                                            text="🔄 Restart",
+                                            text="🔄 Перезапуск",
                                             callback_data=f"quick_restart:{target.key}",
                                         ),
                                     ],
@@ -136,10 +136,10 @@ async def monitor_targets(bot: Bot, ctx: Context) -> None:
                             )
                             await bot.send_message(
                                 ctx.config.admin_id,
-                                f"🔥 <b>ALERT: Critical Error</b>\n\n"
-                                f"🎯 Target: <code>{target.key}</code>\n"
-                                f"📦 Service: <code>{target.service}</code>\n"
-                                f"📄 Errors found: <code>{len(critical_lines)}</code>\n\n"
+                                f"🔥 <b>СПОВІЩЕННЯ: Критична помилка</b>\n\n"
+                                f"🎯 Ціль: <code>{target.key}</code>\n"
+                                f"📦 Сервіс: <code>{target.service}</code>\n"
+                                f"📄 Знайдено помилок: <code>{len(critical_lines)}</code>\n\n"
                                 f"<blockquote expandable>{preview[:1000]}</blockquote>",
                                 parse_mode="HTML",
                                 reply_markup=kb,

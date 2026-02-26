@@ -42,7 +42,7 @@ async def confirm_self_update(cb: CallbackQuery, ctx: Context):
     icon = "✅" if updated else "ℹ️"
 
     text = (
-        f"{icon} <b>SELF UPDATE</b>\n"
+        f"{icon} <b>САМООНОВЛЕННЯ</b>\n"
         f"🔖 {safe_html(log1, max_len=ctx.config.max_output_size)}\n"
         f"<blockquote expandable>{safe_html(res, max_len=ctx.config.max_output_size)}</blockquote>\n\n"
         f"🤖 Перезапускаю <code>{ctx.config.self_service_name}</code>..."

@@ -69,12 +69,12 @@ def collect_system_info(target: Target, *, ctx: Context) -> str:
 
     return (
         "⚙️ <b>Системна інформація</b>\n"
-        f"🎯 Target: <code>{target.key}</code>\n"
+        f"🎯 Ціль: <code>{target.key}</code>\n"
         f"💾 RAM: <code>{safe_html(mem, max_len=ctx.config.max_output_size)}</code>\n"
-        f"💿 Disk: <code>{safe_html(disk, max_len=ctx.config.max_output_size)}{safe_html(free_gb_str, max_len=ctx.config.max_output_size)}</code>{disk_warning}\n"
-        f"⏰ Uptime: <code>{safe_html(uptime, max_len=ctx.config.max_output_size)}</code>\n"
-        f"📈 Loadavg: <code>{safe_html(loadavg_short, max_len=ctx.config.max_output_size)}</code>\n\n"
-        f"📦 <b>Service: {safe_html(target.service, max_len=ctx.config.max_output_size)}</b>\n"
-        f"🔄 Started: <code>{safe_html(service_uptime, max_len=ctx.config.max_output_size)}</code>\n"
-        f"💾 Memory: <code>{safe_html(service_memory_str, max_len=ctx.config.max_output_size)}</code>"
+        f"💿 Диск: <code>{safe_html(disk, max_len=ctx.config.max_output_size)}{safe_html(free_gb_str, max_len=ctx.config.max_output_size)}</code>{disk_warning}\n"
+        f"⏰ Час роботи: <code>{safe_html(uptime, max_len=ctx.config.max_output_size)}</code>\n"
+        f"📈 Навантаження: <code>{safe_html(loadavg_short, max_len=ctx.config.max_output_size)}</code>\n\n"
+        f"📦 <b>Сервіс: {safe_html(target.service, max_len=ctx.config.max_output_size)}</b>\n"
+        f"🔄 Запущено: <code>{safe_html(service_uptime, max_len=ctx.config.max_output_size)}</code>\n"
+        f"💾 Пам'ять: <code>{safe_html(service_memory_str, max_len=ctx.config.max_output_size)}</code>"
     )

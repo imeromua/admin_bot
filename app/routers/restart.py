@@ -48,7 +48,7 @@ async def confirm_restart(cb: CallbackQuery, ctx: Context):
         target=target.service,
         status="success" if is_success else "failed",
         repo_root=ctx.repo_root,
-        details=f"Status after restart: {status.strip()}",
+        details=f"Статус після перезапуску: {status.strip()}",
     )
 
     text = "✅ <b>Перезапуск успішний!</b>" if is_success else f"⚠️ Status: <code>{safe_html(status, max_len=ctx.config.max_output_size)}</code>"

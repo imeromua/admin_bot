@@ -24,9 +24,9 @@ async def backup_db(message: types.Message, ctx: Context):
     await message.answer_document(
         FSInputFile(str(filename)),
         caption=(
-            f"📦 <b>Backup created</b>\n"
-            f"🎯 Target: <code>{target.key}</code>\n"
-            f"💾 Size: {size_mb:.2f} MB"
+            f"📦 <b>Бекап створено</b>\n"
+            f"🎯 Ціль: <code>{target.key}</code>\n"
+            f"💾 Розмір: {size_mb:.2f} МБ"
         ),
         parse_mode="HTML",
     )
