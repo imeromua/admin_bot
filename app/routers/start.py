@@ -34,7 +34,7 @@ async def cmd_start(message: types.Message, ctx: Context):
         "• 💾 Backup PostgreSQL/Redis\n\n"
         "🔐 Доступ тільки для адміністраторів\n"
         "🏭 Сервер: NETX\n"
-        "🏭 <b>Build: v6.1 DevOps Enhanced</b>\n\n"
+        "🏭 <b>Build: v6.2 DevOps Enhanced</b>\n\n"
         "Оберіть команду з меню:",
         reply_markup=main_keyboard(target),
         parse_mode="HTML",
@@ -44,7 +44,7 @@ async def cmd_start(message: types.Message, ctx: Context):
 @router.message(Command("help"))
 async def cmd_help(message: types.Message):
     await message.answer(
-        "ℹ️ <b>Help - Admin Bot v6.1</b>\n\n"
+        "ℹ️ <b>Help - Admin Bot v6.2</b>\n\n"
         "<b>📜 Логи:</b>\n"
         "• 50/100/200 рядків або сьогоднішні\n"
         "• 🔥 Critical (10) - тільки критичні помилки\n"

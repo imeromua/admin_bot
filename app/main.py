@@ -92,8 +92,6 @@ async def main_async():
 
 
 def run():
-    import asyncio
-
     try:
         asyncio.run(main_async())
     except (KeyboardInterrupt, SystemExit):

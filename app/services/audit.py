@@ -35,9 +35,9 @@ def log_action(
         with log_file.open("a", encoding="utf-8") as f:
             f.write(log_entry)
 
-        logger.info(f"Audit: {action} on {target} by {user_id} -> {status}")
+        logger.info("Audit: %s on %s by %s -> %s", action, target, user_id, status)
     except Exception as e:
-        logger.error(f"Failed to write audit log: {e}")
+        logger.error("Failed to write audit log: %s", e)
 
 
 def get_recent_logs(repo_root: Path, limit: int = 50) -> str:
@@ -61,5 +61,5 @@ def get_recent_logs(repo_root: Path, limit: int = 50) -> str:
         recent = lines[-limit:] if len(lines) > limit else lines
         return "".join(recent)
     except Exception as e:
-        logger.error(f"Failed to read audit log: {e}")
+        logger.error("Failed to read audit log: %s", e)
         return f"Error reading audit log: {e}"

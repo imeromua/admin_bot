@@ -14,6 +14,23 @@ Repo: https://github.com/imeromua/admin_bot
 - DB/Redis checks (best-effort based on env variables)
 - Self-update from git and self-restart (env: `ADMIN_BOT_GIT_URL`)
 
+### ✨ New in v6.2
+
+#### 🔧 Bug Fixes & Stability
+- Fixed temp file creation: now uses system temp directory instead of CWD
+- Fixed text chunking edge case that could produce empty first message
+- Fixed potential callback_data overflow in watchdog alerts (Telegram 64-byte limit)
+- Fixed duplicate import and removed unused code
+
+#### 📥 Improved Log Downloads
+- Added **Critical log download** buttons (10/20 lines) to log menu
+- All filtered log downloads now use safe temp files
+
+#### 🧹 Code Cleanup
+- Extracted reusable `split_text_chunks()` utility (DRY across logs, alerts, audit)
+- Replaced f-string logger calls with `%s` formatting for better performance
+- Removed unused `build_root_router` function
+
 ### ✨ New in v6.1
 
 #### 📝 Audit Logging
@@ -201,6 +218,15 @@ anubis ALL=(ALL) NOPASSWD: /bin/journalctl -u admin_bot*
 ```
 
 ## Version History
+
+### v6.2 (2026-02-26)
+- 🔧 Fixed temp file creation (uses system temp dir, not CWD)
+- 🔧 Fixed text chunking edge case (empty first chunk)
+- 🔧 Fixed callback_data overflow in watchdog critical alerts
+- 📥 Added Critical log download buttons to log menu
+- 🧹 Extracted reusable `split_text_chunks()` utility
+- 🧹 Replaced f-string logger calls with `%s` formatting
+- 🧹 Removed unused code (duplicate imports, dead functions)
 
 ### v6.1 (2026-02-18)
 - ✨ Added audit logging system (`/audit` command)
