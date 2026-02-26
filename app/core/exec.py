@@ -16,6 +16,21 @@ def safe_html(text: str, *, max_len: int) -> str:
     return html.escape(text)
 
 
+def split_text_chunks(text: str, *, max_chunk: int = 3800) -> List[str]:
+    """Split text into chunks that fit within Telegram message limits."""
+    chunks: List[str] = []
+    cur = ""
+    for line in text.split("\n"):
+        if cur and len(cur) + len(line) + 1 > max_chunk:
+            chunks.append(cur)
+            cur = line + "\n"
+        else:
+            cur += line + "\n"
+    if cur:
+        chunks.append(cur)
+    return chunks or [""]
+
+
 def run_command(
     args: List[str],
     *,

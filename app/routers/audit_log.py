@@ -5,7 +5,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQu
 from pathlib import Path
 
 from app.context import Context
-from app.core.exec import safe_html
+from app.core.exec import safe_html, split_text_chunks
 from app.services.audit import get_recent_logs
 
 
@@ -58,16 +58,7 @@ async def audit_view(cb: CallbackQuery, ctx: Context):
             return
 
         # Розбиваємо на чанки якщо дуже довго
-        chunks = []
-        cur = ""
-        for line in logs.split("\n"):
-            if len(cur) + len(line) + 1 > 3800:
-                chunks.append(cur)
-                cur = line
-            else:
-                cur += line + "\n"
-        if cur:
-            chunks.append(cur)
+        chunks = split_text_chunks(logs)
 
         await cb.message.answer(
             f"📝 <b>Audit Log (останні {limit})</b>\n\n"

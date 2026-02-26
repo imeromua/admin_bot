@@ -4,7 +4,7 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery
 
 from app.context import Context
-from app.core.exec import safe_html
+from app.core.exec import safe_html, split_text_chunks
 from app.services.watchdog import acknowledge_alert
 from app.services.systemd import sudo_systemctl_restart, systemctl_is_active
 from app.services.journal import journalctl_lines
@@ -103,16 +103,7 @@ async def quick_logs_callback(cb: CallbackQuery, ctx: Context):
         return
     
     # Розбиваємо на chunks
-    chunks = []
-    cur = ""
-    for line in logs.split("\n"):
-        if len(cur) + len(line) + 1 > 3800:
-            chunks.append(cur)
-            cur = line
-        else:
-            cur += line + "\n"
-    if cur:
-        chunks.append(cur)
+    chunks = split_text_chunks(logs)
     
     await cb.message.answer(
         f"📜 <b>Логи ({target.key}) - останні 50 рядків</b>\n\n"

@@ -42,13 +42,13 @@ def _mark_alert_sent(alert_key: str) -> None:
 def acknowledge_alert(alert_key: str) -> None:
     """Помітити alert як 'в роботі' - більше не спамити доки не знято."""
     _acknowledged_alerts.add(alert_key)
-    logger.info(f"Alert acknowledged: {alert_key}")
+    logger.info("Alert acknowledged: %s", alert_key)
 
 
 def unacknowledge_alert(alert_key: str) -> None:
     """Зняти позначку 'в роботі' - дозволити alertи знову."""
     _acknowledged_alerts.discard(alert_key)
-    logger.info(f"Alert unacknowledged: {alert_key}")
+    logger.info("Alert unacknowledged: %s", alert_key)
 
 
 async def monitor_targets(bot: Bot, ctx: Context) -> None:
@@ -95,7 +95,7 @@ async def monitor_targets(bot: Bot, ctx: Context) -> None:
                             reply_markup=kb,
                         )
                         _mark_alert_sent(alert_key)
-                        logger.warning(f"Alert sent: {target.key} is {status}")
+                        logger.warning("Alert sent: %s is %s", target.key, status)
 
                 # Перевірка критичних помилок в логах
                 if ctx.config.alert_on_critical_errors:
@@ -108,16 +108,18 @@ async def monitor_targets(bot: Bot, ctx: Context) -> None:
                     if critical_lines:
                         # Беремо останню помилку
                         last_critical = critical_lines[-1][:200]  # Обрізаємо для ключа
-                        alert_key = f"critical_{target.key}_{hash(last_critical)}"
+                        alert_key = f"crit_{target.key}_{abs(hash(last_critical)) % 10**8}"
 
                         if _should_send_alert(alert_key):
                             preview = "\n".join(critical_lines[-3:])  # Показуємо останні 3
+                            # Truncate alert_key for callback_data (Telegram 64-byte limit)
+                            ack_data = f"ack_alert:{alert_key}"[:64]
                             kb = InlineKeyboardMarkup(
                                 inline_keyboard=[
                                     [
                                         InlineKeyboardButton(
                                             text="✅ Виправляємо...",
-                                            callback_data=f"ack_alert:{alert_key}",
+                                            callback_data=ack_data,
                                         ),
                                         InlineKeyboardButton(
                                             text="🔄 Restart",
@@ -144,12 +146,14 @@ async def monitor_targets(bot: Bot, ctx: Context) -> None:
                             )
                             _mark_alert_sent(alert_key)
                             logger.warning(
-                                f"Alert sent: {target.key} has {len(critical_lines)} critical errors"
+                                "Alert sent: %s has %d critical errors",
+                                target.key,
+                                len(critical_lines),
                             )
 
         except asyncio.CancelledError:
             logger.info("Моніторинг зупинено")
             raise
         except Exception as e:
-            logger.error(f"Помилка моніторингу: {e}", exc_info=True)
+            logger.error("Помилка моніторингу: %s", e, exc_info=True)
             await asyncio.sleep(60)  # Пауза при помилці

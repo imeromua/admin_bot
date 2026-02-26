@@ -14,11 +14,10 @@
 
 🔐 Доступ тільки для адміністраторів
 📍 Сервер: NETX
-🏗 Build: v6.1 DevOps Enhanced
+🏗 Build: v6.2 DevOps Enhanced
 
-🆕 Нове в v6.1:
-✨ Automated monitoring з Telegram alerts
-⚡ Швидкі дії: Acknowledge, Restart, View logs
-📝 Audit log для відстеження всіх дій
-🔥 Розширені фільтри логів (Critical, timeframes)
-💿 Disk space warnings (80%/90%/2GB)
+🆕 Нове в v6.2:
+🔧 Виправлення помилок та покращення стабільності
+📥 Покращена система завантаження логів (dl_critical)
+🧹 Оптимізація та чистка коду
+🛡️ Безпечне зберігання тимчасових файлів

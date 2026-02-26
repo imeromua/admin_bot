@@ -1,12 +1,12 @@
 import re
+import tempfile
 from pathlib import Path
-from typing import List
 
 from aiogram import Router, F, types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, FSInputFile
 
 from app.context import Context
-from app.core.exec import safe_html
+from app.core.exec import safe_html, split_text_chunks
 from app.services.journal import journalctl_lines
 
 
@@ -38,6 +38,10 @@ async def logs_menu(message: types.Message):
             ],
             [InlineKeyboardButton(text="💾 Завантажити файл", callback_data="logs:download")],
             # ── завантаження відфільтрованих ──
+            [
+                InlineKeyboardButton(text="📥 Critical 10", callback_data="logs:dl_critical:10"),
+                InlineKeyboardButton(text="📥 Critical 20", callback_data="logs:dl_critical:20"),
+            ],
             [
                 InlineKeyboardButton(text="📥 Errors 20",  callback_data="logs:dl_errors:20"),
                 InlineKeyboardButton(text="📥 Errors 30",  callback_data="logs:dl_errors:30"),
@@ -73,7 +77,7 @@ async def logs_view(cb: CallbackQuery, ctx: Context):
     target = ctx.get_active_target(cb.message.chat.id)
     parts = cb.data.split(":")
 
-    # ── скачування відфільтрованих логів (errors / warnings) ────────────
+    # ── скачування відфільтрованих логів (errors / warnings / critical) ──
     if len(parts) == 3 and parts[1] in {"dl_errors", "dl_warnings", "dl_critical"} and parts[2].isdigit():
         level_key = parts[1].replace("dl_", "")   # "errors", "warnings" або "critical"
         n = int(parts[2])
@@ -88,11 +92,15 @@ async def logs_view(cb: CallbackQuery, ctx: Context):
             await cb.message.answer(f"{icon} Немає записів ({level_key}) для {target.key}")
             return
 
-        filename = Path(f"{level_key}_{target.key}_{n}.txt")
-        filename.write_text(filtered + "\n", encoding="utf-8")
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", prefix=f"{level_key}_{target.key}_", delete=False, encoding="utf-8"
+        ) as tmp:
+            tmp.write(filtered + "\n")
+            tmp_path = Path(tmp.name)
+
         caption = f"{icon} {level_key.capitalize()} — останні {n} рядків ({target.key})"
-        await cb.message.answer_document(FSInputFile(str(filename)), caption=caption)
-        filename.unlink(missing_ok=True)
+        await cb.message.answer_document(FSInputFile(str(tmp_path)), caption=caption)
+        tmp_path.unlink(missing_ok=True)
         return
 
     # ── фільтр за timeframe ───────────────────────────────────────────────
@@ -117,10 +125,15 @@ async def logs_view(cb: CallbackQuery, ctx: Context):
     elif cb.data == "logs:download":
         await cb.answer("⏳ Генерую файл...", show_alert=True)
         out = journalctl_lines(target.service, n=500, ctx=ctx)
-        filename = Path(f"logs_{target.key}.txt")
-        filename.write_text(out + "\n", encoding="utf-8")
-        await cb.message.answer_document(FSInputFile(str(filename)))
-        filename.unlink(missing_ok=True)
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", prefix=f"logs_{target.key}_", delete=False, encoding="utf-8"
+        ) as tmp:
+            tmp.write(out + "\n")
+            tmp_path = Path(tmp.name)
+
+        await cb.message.answer_document(FSInputFile(str(tmp_path)))
+        tmp_path.unlink(missing_ok=True)
         return
     elif len(parts) == 2 and parts[1].isdigit():
         n = int(parts[1])
@@ -146,17 +159,7 @@ async def logs_view(cb: CallbackQuery, ctx: Context):
         await cb.answer()
         return
 
-    chunks: List[str] = []
-    cur = ""
-    for line in out.split("\n"):
-        if len(cur) + len(line) + 1 > 3800:
-            chunks.append(cur)
-            cur = line
-        else:
-            cur += line + "\n"
-    if cur:
-        chunks.append(cur)
-
+    chunks = split_text_chunks(out)
     max_len = ctx.config.max_output_size
     await cb.message.answer(
         f"{title}\n<blockquote expandable>{safe_html(chunks[0], max_len=max_len)}</blockquote>",
