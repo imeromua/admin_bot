@@ -25,5 +25,5 @@ async def restart_self_handler(cb: CallbackQuery, ctx: Context):
 
 async def _run_self_restart(service_name: str):
     await asyncio.sleep(1)
-    logger.warning("Self-restart initiated for service: %s", service_name)
+    logger.warning("Ініційовано самоперезапуск для сервісу: %s", service_name)
     subprocess.run(["sudo", "systemctl", "restart", service_name])

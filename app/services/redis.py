@@ -52,7 +52,7 @@ def get_redis_status(target: Target, *, ctx: Context) -> str:
     icon = "🟢" if healthy else "🔴"
     return (
         f"{icon} <b>Redis</b>\n"
-        f"Target: <code>{target.key}</code>\n"
+        f"Ціль: <code>{target.key}</code>\n"
         f"URL: <code>{safe_html(url, max_len=ctx.config.max_output_size)}</code>\n\n"
         f"<blockquote expandable>{safe_html(out, max_len=ctx.config.max_output_size)}</blockquote>"
     )

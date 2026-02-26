@@ -29,7 +29,7 @@ def self_git_update(*, ctx: Context) -> Tuple[str, str, bool]:
     branch = (ctx.config.self_git_branch or "main").strip() or "main"
 
     if not git_url:
-        return "❌ ADMIN_BOT_GIT_URL is empty in .env", "", False
+        return "❌ ADMIN_BOT_GIT_URL не встановлено в .env", "", False
 
     before = run_command(
         ["git", "rev-parse", "--short", "HEAD"],
@@ -38,7 +38,7 @@ def self_git_update(*, ctx: Context) -> Tuple[str, str, bool]:
         max_output_size=ctx.config.max_output_size,
     ).strip()
 
-    # Keep output safe: don't leak credentials if the URL contains them.
+    # Безпечний вивід: не розкривати облікові дані якщо URL їх містить.
     masked_url = _mask_url(git_url)
 
     set_url = run_command(

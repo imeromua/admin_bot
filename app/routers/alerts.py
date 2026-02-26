@@ -1,4 +1,4 @@
-"""Router for handling alert quick actions."""
+"""Маршрутизатор для обробки швидких дій зі сповіщень."""
 import asyncio
 from aiogram import Router, F
 from aiogram.types import CallbackQuery
@@ -66,15 +66,15 @@ async def quick_restart_callback(cb: CallbackQuery, ctx: Context):
         target=target.service,
         status="success" if is_success else "failed",
         repo_root=ctx.repo_root,
-        details=f"Рестарт з alertу, статус: {status}",
+        details=f"Рестарт зі сповіщення, статус: {status}",
     )
     
     icon = "✅" if is_success else "❌"
     result_text = (
         f"{icon} <b>Рестарт завершено</b>\n"
-        f"🎯 Target: <code>{target.key}</code>\n"
-        f"📦 Service: <code>{target.service}</code>\n"
-        f"⚠️ Status: <code>{status}</code>"
+        f"🎯 Ціль: <code>{target.key}</code>\n"
+        f"📦 Сервіс: <code>{target.service}</code>\n"
+        f"⚠️ Статус: <code>{status}</code>"
     )
     
     await cb.message.answer(result_text, parse_mode="HTML")

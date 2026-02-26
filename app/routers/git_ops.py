@@ -29,7 +29,7 @@ async def git_pull_msg(message: types.Message, ctx: Context):
     )
 
     text = (
-        f"{icon} <b>GIT UPDATE</b> ({target.key})\n"
+        f"{icon} <b>ОНОВЛЕННЯ GIT</b> ({target.key})\n"
         f"🔖 {safe_html(log1, max_len=ctx.config.max_output_size)}\n"
         f"<blockquote expandable>{safe_html(pull_res, max_len=ctx.config.max_output_size)}</blockquote>"
     )
@@ -39,8 +39,8 @@ async def git_pull_msg(message: types.Message, ctx: Context):
         kb = InlineKeyboardMarkup(
             inline_keyboard=[
                 [
-                    InlineKeyboardButton(text=f"🔄 Restart {target.service}", callback_data="confirm_restart"),
-                    InlineKeyboardButton(text=f"🤖 Restart {ctx.config.self_service_name}", callback_data="restart_self"),
+                    InlineKeyboardButton(text=f"🔄 Перезапуск {target.service}", callback_data="confirm_restart"),
+                    InlineKeyboardButton(text=f"🤖 Перезапуск {ctx.config.self_service_name}", callback_data="restart_self"),
                 ]
             ]
         )
