@@ -12,64 +12,90 @@ from app.services.journal import journalctl_lines
 
 router = Router()
 
+# ── відображення часових міток ──────────────────────────────────────────
+_SINCE_MAP = {
+    "5m":  "5 minutes ago",
+    "10m": "10 minutes ago",
+    "20m": "20 minutes ago",
+    "1h":  "1 hour ago",
+    "5h":  "5 hours ago",
+    "12h": "12 hours ago",
+}
 
-@router.message(F.text == "📜 Логи")
-async def logs_menu(message: types.Message):
-    kb = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(text="📋 50",  callback_data="logs:50"),
-                InlineKeyboardButton(text="📋 100", callback_data="logs:100"),
-                InlineKeyboardButton(text="📋 200", callback_data="logs:200"),
-            ],
-            [InlineKeyboardButton(text="📅 Сьогодні", callback_data="logs:today")],
-            [
-                InlineKeyboardButton(text="🔥 Критичні (10)", callback_data="logs:critical:10"),
-                InlineKeyboardButton(text="🚨 Помилки (50)",  callback_data="logs:errors:50"),
-            ],
-            [
-                InlineKeyboardButton(text="⚠️ Попередження (50)", callback_data="logs:warnings:50"),
-            ],
-            # ── фільтр за часом ──
-            [
-                InlineKeyboardButton(text="⏰ 1 год",  callback_data="logs:timeframe:1h"),
-                InlineKeyboardButton(text="⏰ 3 год",  callback_data="logs:timeframe:3h"),
-                InlineKeyboardButton(text="⏰ 24 год", callback_data="logs:timeframe:24h"),
-            ],
-            [InlineKeyboardButton(text="💾 Завантажити файл", callback_data="logs:download")],
-            # ── завантаження відфільтрованих ──
-            [
-                InlineKeyboardButton(text="📥 Критичні 10", callback_data="logs:dl_critical:10"),
-                InlineKeyboardButton(text="📥 Критичні 20", callback_data="logs:dl_critical:20"),
-            ],
-            [
-                InlineKeyboardButton(text="📥 Помилки 20",  callback_data="logs:dl_errors:20"),
-                InlineKeyboardButton(text="📥 Помилки 30",  callback_data="logs:dl_errors:30"),
-                InlineKeyboardButton(text="📥 Помилки 50",  callback_data="logs:dl_errors:50"),
-            ],
-            [
-                InlineKeyboardButton(text="📥 Попередження 20", callback_data="logs:dl_warnings:20"),
-                InlineKeyboardButton(text="📥 Попередження 30", callback_data="logs:dl_warnings:30"),
-                InlineKeyboardButton(text="📥 Попередження 50", callback_data="logs:dl_warnings:50"),
-            ],
-        ]
-    )
-    await message.answer("📜 <b>Логи (journalctl)</b>", reply_markup=kb, parse_mode="HTML")
-
+_LABEL_MAP = {
+    "5m":  "5 хв",
+    "10m": "10 хв",
+    "20m": "20 хв",
+    "1h":  "1 год",
+    "5h":  "5 год",
+    "12h": "12 год",
+}
 
 # ── патерни фільтрації ──────────────────────────────────────────────────
 _PATTERNS = {
-    "critical": re.compile(r"CRITICAL|FATAL|Traceback", re.IGNORECASE),
     "errors":   re.compile(r"ERROR|CRITICAL|Exception|Traceback", re.IGNORECASE),
     "warnings": re.compile(r"warning", re.IGNORECASE),
 }
 
 
-def _filter_lines(raw: str, level: str, n: int) -> str:
-    """Повертає останні n рядків відфільтрованого журналу або порожній рядок."""
-    pattern = _PATTERNS[level]
+def _filter_lines(raw: str, level: str) -> str:
+    """Повертає рядки журналу, що відповідають рівню level."""
+    pattern = _PATTERNS.get(level)
+    if pattern is None:
+        return raw
     filtered = [ln for ln in raw.splitlines() if pattern.search(ln)]
-    return "\n".join(filtered[-n:])
+    return "\n".join(filtered)
+
+
+@router.message(F.text == "📜 Логи")
+async def logs_menu(message: types.Message):
+    kb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            # ── всі логи — переглянути ──
+            [
+                InlineKeyboardButton(text="📋 Всі (5 хв)",  callback_data="logs:view:all:5m"),
+                InlineKeyboardButton(text="📋 Всі (10 хв)", callback_data="logs:view:all:10m"),
+                InlineKeyboardButton(text="📋 Всі (20 хв)", callback_data="logs:view:all:20m"),
+            ],
+            # ── всі логи — завантажити ──
+            [
+                InlineKeyboardButton(text="📥 Всі (5 хв)",  callback_data="logs:dl:all:5m"),
+                InlineKeyboardButton(text="📥 Всі (10 хв)", callback_data="logs:dl:all:10m"),
+                InlineKeyboardButton(text="📥 Всі (20 хв)", callback_data="logs:dl:all:20m"),
+            ],
+            # ── помилки — переглянути ──
+            [
+                InlineKeyboardButton(text="🚨 Помилки (5 хв)",  callback_data="logs:view:errors:5m"),
+                InlineKeyboardButton(text="🚨 Помилки (10 хв)", callback_data="logs:view:errors:10m"),
+                InlineKeyboardButton(text="🚨 Помилки (20 хв)", callback_data="logs:view:errors:20m"),
+            ],
+            # ── помилки — завантажити ──
+            [
+                InlineKeyboardButton(text="📥 Помилки (5 хв)",  callback_data="logs:dl:errors:5m"),
+                InlineKeyboardButton(text="📥 Помилки (10 хв)", callback_data="logs:dl:errors:10m"),
+                InlineKeyboardButton(text="📥 Помилки (20 хв)", callback_data="logs:dl:errors:20m"),
+            ],
+            # ── попередження — переглянути ──
+            [
+                InlineKeyboardButton(text="⚠️ Попередження (5 хв)",  callback_data="logs:view:warnings:5m"),
+                InlineKeyboardButton(text="⚠️ Попередження (10 хв)", callback_data="logs:view:warnings:10m"),
+                InlineKeyboardButton(text="⚠️ Попередження (20 хв)", callback_data="logs:view:warnings:20m"),
+            ],
+            # ── попередження — завантажити ──
+            [
+                InlineKeyboardButton(text="📥 Попередження (5 хв)",  callback_data="logs:dl:warnings:5m"),
+                InlineKeyboardButton(text="📥 Попередження (10 хв)", callback_data="logs:dl:warnings:10m"),
+                InlineKeyboardButton(text="📥 Попередження (20 хв)", callback_data="logs:dl:warnings:20m"),
+            ],
+            # ── скачати всі логи за годину ──
+            [
+                InlineKeyboardButton(text="📥 Скачати (1 год)",  callback_data="logs:dl:all:1h"),
+                InlineKeyboardButton(text="📥 Скачати (5 год)",  callback_data="logs:dl:all:5h"),
+                InlineKeyboardButton(text="📥 Скачати (12 год)", callback_data="logs:dl:all:12h"),
+            ],
+        ]
+    )
+    await message.answer("📜 <b>Логи (journalctl)</b>", reply_markup=kb, parse_mode="HTML")
 
 
 @router.callback_query(F.data.startswith("logs:"))
@@ -77,82 +103,50 @@ async def logs_view(cb: CallbackQuery, ctx: Context):
     target = ctx.get_active_target(cb.message.chat.id)
     parts = cb.data.split(":")
 
-    # ── скачування відфільтрованих логів (errors / warnings / critical) ──
-    if len(parts) == 3 and parts[1] in {"dl_errors", "dl_warnings", "dl_critical"} and parts[2].isdigit():
-        level_key = parts[1].replace("dl_", "")   # "errors", "warnings" або "critical"
-        n = int(parts[2])
+    # очікуємо формат logs:<action>:<level>:<timeframe>
+    if len(parts) != 4:
+        await cb.answer()
+        return
 
-        await cb.answer(f"⏳ Генерую файл ({level_key}, {n} рядків)…", show_alert=True)
+    _, action, level, timeframe = parts
 
-        raw = journalctl_lines(target.service, n=1000, ctx=ctx)
-        filtered = _filter_lines(raw, level_key, n)
+    since = _SINCE_MAP.get(timeframe)
+    label = _LABEL_MAP.get(timeframe, timeframe)
 
-        icon = "🔥" if level_key == "critical" else ("🚨" if level_key == "errors" else "⚠️")
-        if not filtered:
-            await cb.message.answer(f"{icon} Немає записів ({level_key}) для {target.key}")
+    if since is None or action not in {"view", "dl"}:
+        await cb.answer()
+        return
+
+    raw = journalctl_lines(target.service, since=since, ctx=ctx)
+
+    if level in _PATTERNS:
+        out = _filter_lines(raw, level) or "(немає збігів)"
+    else:
+        out = raw
+
+    icon = "🚨" if level == "errors" else "⚠️" if level == "warnings" else "📋"
+    lvl_name = "помилки" if level == "errors" else "попередження" if level == "warnings" else "всі"
+
+    if action == "dl":
+        await cb.answer("⏳ Генерую файл…", show_alert=True)
+
+        if not out or out.startswith("❌"):
+            await cb.message.answer("❌ Логи недоступні або порожні")
             return
 
         with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".txt", prefix=f"{level_key}_{target.key}_", delete=False, encoding="utf-8"
-        ) as tmp:
-            tmp.write(filtered + "\n")
-            tmp_path = Path(tmp.name)
-
-        caption = f"{icon} {level_key.capitalize()} — останні {n} рядків ({target.key})"
-        await cb.message.answer_document(FSInputFile(str(tmp_path)), caption=caption)
-        tmp_path.unlink(missing_ok=True)
-        return
-
-    # ── фільтр за timeframe ───────────────────────────────────────────────
-    if len(parts) == 3 and parts[1] == "timeframe":
-        timeframe = parts[2]  # "1h", "3h", "24h"
-        since_map = {"1h": "1 hour ago", "3h": "3 hours ago", "24h": "1 day ago"}
-        since = since_map.get(timeframe, "1 hour ago")
-        
-        out = journalctl_lines(target.service, since=since, ctx=ctx)
-        title = f"⏰ Логи за останні {timeframe.replace('h', ' год')} ({target.key})"
-    # ── critical фільтр ─────────────────────────────────────────────────────
-    elif len(parts) == 3 and parts[1] == "critical" and parts[2].isdigit():
-        n = int(parts[2])
-        raw = journalctl_lines(target.service, n=1000, ctx=ctx)
-        filtered_text = _filter_lines(raw, "critical", n)
-        out = filtered_text or "(немає збігів)"
-        title = f"🔥 Критичні (останні {n}) ({target.key})"
-    # ── решта існуючої логіки ──────────────────────────────────────────────
-    elif cb.data == "logs:today":
-        out = journalctl_lines(target.service, since="today", ctx=ctx)
-        title = f"📅 Логи за сьогодні ({target.key})"
-    elif cb.data == "logs:download":
-        await cb.answer("⏳ Генерую файл...", show_alert=True)
-        out = journalctl_lines(target.service, n=500, ctx=ctx)
-
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".txt", prefix=f"logs_{target.key}_", delete=False, encoding="utf-8"
+            mode="w", suffix=".txt", prefix=f"logs_{level}_{target.key}_", delete=False, encoding="utf-8"
         ) as tmp:
             tmp.write(out + "\n")
             tmp_path = Path(tmp.name)
 
-        await cb.message.answer_document(FSInputFile(str(tmp_path)))
+        caption = f"{icon} Логи ({lvl_name}) — останні {label} ({target.key})"
+        await cb.message.answer_document(FSInputFile(str(tmp_path)), caption=caption)
         tmp_path.unlink(missing_ok=True)
         return
-    elif len(parts) == 2 and parts[1].isdigit():
-        n = int(parts[1])
-        out = journalctl_lines(target.service, n=n, ctx=ctx)
-        title = f"📋 Останні {n} ({target.key})"
-    elif len(parts) == 3 and parts[1] in {"errors", "warnings"} and parts[2].isdigit():
-        level = parts[1]
-        n = int(parts[2])
-        raw = journalctl_lines(target.service, n=500, ctx=ctx)
-        filtered_text = _filter_lines(raw, level, n)
-        out = filtered_text or "(немає збігів)"
-        title = (
-            f"🚨 Помилки (останні {n}) ({target.key})"
-            if level == "errors"
-            else f"⚠️ Попередження (останні {n}) ({target.key})"
-        )
-    else:
-        await cb.answer()
-        return
+
+    # action == "view"
+    title = f"{icon} Логи ({lvl_name}) за останні {label} ({target.key})"
 
     if not out or out.startswith("❌"):
         await cb.message.answer(f"{title}\n\n❌ Логи недоступні або порожні")
