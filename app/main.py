@@ -26,6 +26,7 @@ from app.routers import (
     audit_log,
     alerts,
 )
+from app.routers import frontend_build
 
 
 logger = logging.getLogger("admin_bot")
@@ -61,13 +62,14 @@ async def main_async():
     dp.include_router(pip_ops.router)
     dp.include_router(git_ops.router)
     dp.include_router(restart.router)
+    dp.include_router(frontend_build.router)
     dp.include_router(self_restart.router)
     dp.include_router(self_update.router)
     dp.include_router(env_ops.router)
     dp.include_router(backup.router)
     dp.include_router(sysinfo.router)
     dp.include_router(audit_log.router)
-    dp.include_router(alerts.router)  # Швидкі дії з alertів
+    dp.include_router(alerts.router)
 
     # Запуск watchdog якщо вмикано
     watchdog_task = None
